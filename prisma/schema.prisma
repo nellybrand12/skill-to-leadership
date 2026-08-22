@@ -1,0 +1,304 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      String   @default("SUPER_ADMIN") // SUPER_ADMIN, ADMIN, REVIEWER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Cohort {
+  id                  String        @id @default(uuid())
+  cohortNumber        Int           @unique
+  title               String
+  theme               String?
+  description         String
+  startDate           DateTime
+  endDate             DateTime
+  applicationDeadline DateTime?
+  status              String        @default("UPCOMING") // DRAFT, COMING_SOON, ACTIVE, COMPLETED, ARCHIVED, UPCOMING
+  maxParticipants     Int           @default(30)
+  totalPrizeMoney     Int           @default(400000)
+  skills              Skill[]
+  participants        Participant[]
+  galleryItems        GalleryItem[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+}
+
+model Skill {
+  id             String        @id @default(uuid())
+  name           String
+  slug           String        @unique
+  shortDesc      String
+  fullDesc       String
+  iconName       String        @default("Sparkles")
+  coverImage     String
+  videoUrl       String?
+  instructor     String?
+  toolsIncluded  String        @default("[]") // JSON array string
+  outcomes       String        @default("[]") // JSON array string
+  prizeAmount    Int           @default(100000)
+  displayOrder   Int           @default(0)
+  published      Boolean       @default(true)
+  cohortId       String?
+  cohort         Cohort?       @relation(fields: [cohortId], references: [id])
+  participants   Participant[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Participant {
+  id             String   @id @default(uuid())
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  bio            String?
+  photoUrl       String?
+  isWinner       Boolean  @default(false)
+  prizeWon       Int?     // 100,000 FCFA
+  projectTitle   String?
+  projectDesc    String?
+  skillId        String
+  skill          Skill    @relation(fields: [skillId], references: [id])
+  cohortId       String
+  cohort         Cohort   @relation(fields: [cohortId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Application {
+  id                 String   @id @default(uuid())
+  refCode            String   @unique
+  fullName           String
+  email              String
+  phone              String
+  age                Int
+  location           String
+  education          String
+  skillPreference    String
+  motivation         String
+  previousExperience String?
+  portfolioUrl       String?
+  emergencyContact   String
+  consent            Boolean  @default(true)
+  status             String   @default("SUBMITTED") // SUBMITTED, UNDER_REVIEW, SHORTLISTED, ACCEPTED, REJECTED, WAITLISTED
+  reviewerNotes      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Event {
+  id               String              @id @default(uuid())
+  title            String
+  slug             String              @unique
+  description      String
+  date             DateTime
+  startDateTime    DateTime?
+  endDateTime      DateTime?
+  time             String              @default("9:00 AM Sharp")
+  location         String              @default("Yaoundé, Cameroon")
+  isVirtual        Boolean             @default(false)
+  coverImage       String
+  organizer        String              @default("Skill to Leadership")
+  eventType        String              @default("EVENT") // EVENT or COMPETITION
+  status           String              @default("UPCOMING") // UPCOMING, ACTIVE, CLOSED, ARCHIVED
+  capacity         Int                 @default(100)
+  isSpotlight      Boolean             @default(false)
+  applicationsEnabled Boolean          @default(false)
+  applicationUrl   String?             // External application link (required for competitions when applications are enabled)
+  eligibilityInfo  String?
+  statisticsInfo   String?
+  winnerName       String?
+  winnerBusiness   String?
+  winnerPhoto      String?
+  winnerStory      String?
+  winnerQuote      String?
+  winnerPrize      String?
+  hasWinner        Boolean             @default(false)
+  published        Boolean             @default(true)
+  registrations    EventRegistration[]
+  eventParticipants EventParticipant[]
+  eventMedia       EventMedia[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+}
+
+model EventParticipant {
+  id           String   @id @default(uuid())
+  eventId      String
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name         String
+  photoUrl     String?
+  businessName String
+  category     String   @default("ENTREPRENEUR")
+  bio          String?
+  story        String
+  quote        String?
+  website      String?
+  isWinner     Boolean  @default(false)
+  displayOrder Int      @default(0)
+  published    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model EventMedia {
+  id           String   @id @default(uuid())
+  eventId      String
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  mediaType    String   @default("IMAGE") // IMAGE, VIDEO
+  url          String
+  caption      String?
+  displayOrder Int      @default(0)
+  published    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model EventRegistration {
+  id                  String   @id @default(uuid())
+  eventId             String
+  event               Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  fullName            String
+  email               String
+  phone               String
+  attendanceConfirmed Boolean  @default(true)
+  createdAt           DateTime @default(now())
+}
+
+model Story {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     String
+  coverImage  String
+  author      String
+  authorRole  String?
+  category    String   @default("SUCCESS_STORY") // SUCCESS_STORY, MENTOR_SPOTLIGHT, PROGRAM_UPDATE, YOUTH_EMPOWERMENT
+  readingTime String   @default("4 min read")
+  isPublished Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Donation {
+  id            String   @id @default(uuid())
+  receiptNumber String   @unique
+  donorName     String
+  donorEmail    String
+  donorPhone    String?
+  amount        Int      // in FCFA
+  frequency     String   @default("ONE_TIME") // ONE_TIME, MONTHLY
+  paymentMethod String   @default("MTN_MOMO") // MTN_MOMO, ORANGE_MONEY, CARD, BANK_WIRE
+  purpose       String   @default("GENERAL") // TRAINING_MATERIALS, EQUIPMENT, PRIZES, GENERAL
+  status        String   @default("SUCCESSFUL") // PENDING, SUCCESSFUL, FAILED, CANCELLED
+  txReference   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Partner {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  logoUrl     String
+  description String
+  website     String?
+  category    String   @default("ACADEMIC") // ACADEMIC, GLOBAL_FELLOWSHIP, COMMUNITY, CORPORATE
+  isFeatured  Boolean  @default(true)
+  published   Boolean  @default(true)
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Volunteer {
+  id             String   @id @default(uuid())
+  fullName       String
+  email          String
+  phone          String
+  rolePreference String   // MENTOR, INSTRUCTOR, EVENT_COORDINATOR, MEDIA, STAFF
+  roleTitle      String?  // Custom descriptive role title (e.g. Head of Hair Artistry)
+  imageUrl       String?  // Profile headshot / photo URL
+  bio            String
+  linkedin       String?
+  availability   String
+  status         String   @default("PENDING") // PENDING, APPROVED, CONTACTED
+  isStaff        Boolean  @default(false)
+  displayOrder   Int      @default(0)
+  published      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+}
+
+model ContactMessage {
+  id        String    @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  category  String    @default("GENERAL") // GENERAL, PARTNERSHIP, DONATION, VOLUNTEERING, MEDIA, PROGRAM
+  subject   String
+  message   String
+  isRead    Boolean   @default(false)
+  status    String    @default("UNREAD") // UNREAD, READ, REPLIED, ARCHIVED
+  replyText String?
+  repliedAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model GalleryItem {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  imageUrl    String
+  category    String   // BRAIDING, CERAMICS, CONTENT_CREATION, NAIL_ART, COMPETITION, AWARDS, WORKSHOPS
+  cohortId    String?
+  cohort      Cohort?  @relation(fields: [cohortId], references: [id])
+  orderIndex  Int      @default(0)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model SiteSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  label     String
+  group     String   @default("GENERAL") // HERO, COUNTDOWN, STATS, CONTACT, GENERAL, BRAND
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id           String   @id @default(uuid())
+  name         String
+  role         String   @default("Cohort 1 Participant") // Position / Subtitle text field
+  track        String?  // Vocational track / Discipline
+  image        String   @default("/images/CH1-candidates/1.jpg") // Portrait / Headshot image URL
+  text         String   // Testimonial quote & reflection content
+  outcome      String?  // Outcome / milestone highlight
+  displayOrder Int      @default(0)
+  published    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+

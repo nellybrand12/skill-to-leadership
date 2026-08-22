@@ -1,0 +1,225 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-ink-primary: #18233F;
+    --color-ink-secondary: #263452;
+    --color-ink-deep: #0E1626;
+    --color-gold-warm: #F4B41A;
+    --color-gold-soft: #FFF0C7;
+    --color-cream-canvas: #FCFBF7;
+    --color-cream-surface: #F3F1EA;
+    --color-text-main: #1C2434;
+    --color-text-muted: #687083;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color: var(--color-text-main);
+    background-color: var(--color-cream-canvas);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Manrope', 'Inter', 'Segoe UI', Roboto, sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    overflow-x: hidden;
+    background-color: var(--color-cream-canvas);
+    color: var(--color-text-main);
+  }
+
+  ::selection {
+    background-color: #FFF0C7;
+    color: #18233F;
+  }
+}
+
+/* =========================================================================
+   1. LIQUID GLASS EFFECTS (Tasteful & Refined)
+   ========================================================================= */
+.liquid-glass-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 10px 30px -5px rgba(24, 35, 63, 0.05), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.liquid-glass-card-dark {
+  background: rgba(14, 22, 38, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 40px -10px rgba(10, 15, 29, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.liquid-glass-badge {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(244, 180, 26, 0.35);
+  box-shadow: 0 4px 12px rgba(24, 35, 63, 0.04);
+}
+
+.liquid-glass-button {
+  background: rgba(244, 180, 26, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 24px -4px rgba(244, 180, 26, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  color: #18233F !important;
+  transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease, transform 0.25s ease !important;
+}
+
+.liquid-glass-button:hover {
+  background: rgba(217, 151, 8, 0.98);
+  color: #18233F !important;
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 12px 28px -4px rgba(244, 180, 26, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+
+/* =========================================================================
+   2. AMBIENT GLOWS & GRADIENTS
+   ========================================================================= */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #F4B41A 0%, #D99708 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ambient-glow-gold {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(244, 180, 26, 0.12) 0%, rgba(244, 180, 26, 0) 70%);
+  filter: blur(55px);
+  pointer-events: none;
+}
+
+.ambient-glow-ink {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(24, 35, 63, 0.07) 0%, rgba(24, 35, 63, 0) 70%);
+  filter: blur(55px);
+  pointer-events: none;
+}
+
+/* =========================================================================
+   3. GALLERY EDGE BLUR GRADIENT MASKS
+   ========================================================================= */
+.gallery-edge-mask {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 6%,
+    black 94%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 6%,
+    black 94%,
+    transparent 100%
+  );
+}
+
+/* =========================================================================
+   4. PAGE SLIDE TRANSITION (400–500ms)
+   ========================================================================= */
+@keyframes page-slide-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-page-slide {
+  animation: page-slide-enter 450ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Scroll reveal initial state */
+.reveal-init {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-active {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* =========================================================================
+   5. INTRO / HERO LINK BACKGROUND COLOR TRANSITION (0.5s Ease Transition)
+   ========================================================================= */
+.intro-link,
+[data-section="hero"] a,
+[data-section="intro"] a,
+.hero-section a {
+  transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease, transform 0.25s ease !important;
+}
+
+/* On hover: background changes smoothly, font color does NOT change to maintain high contrast */
+.intro-link:hover,
+[data-section="hero"] a:hover,
+[data-section="intro"] a:hover,
+.hero-section a:hover {
+  color: inherit;
+}
+
+/* =========================================================================
+   7. HORIZONTAL TESTIMONIALS MARQUEE SCROLL
+   ========================================================================= */
+@keyframes marquee-scroll-left {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-single {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  width: max-content !important;
+  animation: marquee-scroll-left 50s linear infinite !important;
+  will-change: transform;
+}
+
+.animate-marquee-single:hover {
+  animation-play-state: paused !important;
+}
+
+/* =========================================================================
+   8. ACCESSIBILITY / PREFERS-REDUCED-MOTION
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-slide,
+  .animate-marquee-single {
+    animation: none !important;
+  }
+  .reveal-init {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
