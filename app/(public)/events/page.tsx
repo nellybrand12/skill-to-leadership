@@ -10,6 +10,7 @@ import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { Calendar, Clock, MapPin, Sparkles, Trophy, Users, BookOpen, ExternalLink, ShieldAlert } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata = {
   title: 'Events & Initiatives | Skill to Leadership',
@@ -83,20 +84,16 @@ export default async function EventsPage() {
       }));
 
   return (
-    <div className="space-y-20 py-12 lg:py-20 bg-cream-canvas">
+    <div className="space-y-16 sm:space-y-20 py-10 sm:py-12 lg:py-20 bg-cream-canvas">
       
       {/* Header */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
           <div className="max-w-3xl mx-auto text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full liquid-glass-badge text-gold-900 text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-gold-700" />
-              <span>Opportunities & Gatherings</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display uppercase">
               Events & Initiatives
             </h1>
-            <p className="text-base sm:text-lg text-neutral-muted leading-relaxed font-light">
+            <p className="text-sm sm:text-base lg:text-lg text-neutral-muted leading-relaxed font-light">
               Explore active platforms, convergence workshops, and graduation celebrations empowering Cameroonian youth.
             </p>
           </div>
@@ -180,7 +177,7 @@ export default async function EventsPage() {
                     </div>
                   )}
 
-                  {spotlightEvent?.slug && (
+                  {!isSpotlightOpen && spotlightEvent?.slug && (
                     <Link
                       href={`/events/${spotlightEvent.slug}`}
                       className="px-6 py-4 rounded-button bg-white/10 hover:bg-white/20 text-white font-bold text-sm transition-all"

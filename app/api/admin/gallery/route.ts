@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
 
 export async function GET(req: Request) {
   const { session, errorResponse } = requireAdminSession();
@@ -60,6 +62,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, item: newItem });
   } catch (err) {
     console.error('Create gallery item error:', err);
@@ -82,6 +85,8 @@ export async function PUT(req: Request) {
     if (data.orderIndex !== undefined) data.orderIndex = Number(data.orderIndex);
     if (data.published !== undefined) data.published = Boolean(data.published);
 
+    const oldItem = await db.galleryItem.findUnique({ where: { id } });
+
     const updated = await db.galleryItem.update({
       where: { id },
       data,
@@ -90,6 +95,11 @@ export async function PUT(req: Request) {
       },
     });
 
+    if (oldItem && oldItem.imageUrl !== updated.imageUrl) {
+      await cleanupOrphanedMedia(oldItem.imageUrl);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, item: updated });
   } catch (err) {
     console.error('Update gallery item error:', err);
@@ -109,10 +119,17 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Gallery item ID is required.' }, { status: 400 });
     }
 
+    const oldItem = await db.galleryItem.findUnique({ where: { id } });
+
     await db.galleryItem.delete({
       where: { id },
     });
 
+    if (oldItem?.imageUrl) {
+      await cleanupOrphanedMedia(oldItem.imageUrl);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete gallery item error:', err);

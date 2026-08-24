@@ -6,6 +6,7 @@ import { WhatsAppIcon } from '@/components/ui/icons/WhatsAppIcon';
 import { Mail, MapPin, Clock, ExternalLink } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata = {
   title: 'Contact Us | Skill to Leadership',
@@ -22,16 +23,15 @@ export default async function ContactPage() {
   const workingHours = settings.contact_working_hours || 'Monday – Friday: 8:30 AM – 5:30 PM WAT';
 
   return (
-    <div className="space-y-20 py-12 lg:py-20 bg-cream-canvas">
+    <div className="space-y-16 sm:space-y-20 py-10 sm:py-12 lg:py-20 bg-cream-canvas">
       
       {/* Header */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center space-y-4">
-          <Badge variant="gold">Get in Touch</Badge>
-          <h1 className="text-4xl sm:text-5xl font-black text-ink-900 tracking-tight font-display">
+        <div className="max-w-3xl mx-auto text-center space-y-3">
+          <h1 className="text-3xl sm:text-5xl font-black text-ink-900 tracking-tight font-display uppercase">
             We&apos;d Love to Hear from You
           </h1>
-          <p className="text-lg text-neutral-muted leading-relaxed font-light">
+          <p className="text-sm sm:text-base lg:text-lg text-neutral-muted leading-relaxed font-light">
             Have questions about upcoming cohorts, partnerships, volunteering, or donations? Reach out directly via WhatsApp or Email.
           </p>
         </div>

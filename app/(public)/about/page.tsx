@@ -22,6 +22,10 @@ import {
   Building2,
   GraduationCap,
 } from 'lucide-react';
+import { getSiteSettings } from '@/lib/settings';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata = {
   title: 'About Us | Turning Skills into Leadership',
@@ -29,7 +33,8 @@ export const metadata = {
     'Skill to Leadership is a youth-focused non-profit program in Cameroon empowering young people with practical craft skills, mentorship, confidence, and leadership opportunities.',
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const settings = await getSiteSettings();
   const {
     hero,
     missionVision,
@@ -59,17 +64,12 @@ export default function AboutPage() {
           ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <div className="max-w-4xl mx-auto text-center space-y-5">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-glass-badge text-gold-900 text-xs font-black uppercase tracking-widest shadow-soft">
-              <Sparkles className="w-4 h-4 text-gold-700" />
-              <span>{hero.badge}</span>
-            </div>
-
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-ink-900 tracking-tight leading-[1.05] font-display uppercase">
+          <div className="max-w-4xl mx-auto text-center space-y-4">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight leading-[1.08] font-display uppercase">
               {hero.headline}
             </h1>
 
-            <p className="text-lg sm:text-2xl text-ink-900 font-medium max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-xl text-ink-900 font-medium max-w-3xl mx-auto leading-relaxed">
               {hero.subtitle}
             </p>
 
@@ -204,15 +204,11 @@ export default function AboutPage() {
       <section className="bg-cream-surface/60 py-16 lg:py-24 border-y border-cream-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <ScrollReveal>
-            <div className="max-w-3xl mx-auto text-center space-y-3">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full liquid-glass-badge text-gold-900 text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-gold-700" />
-                <span>{whatWeDo.badge}</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink-900 tracking-tight font-display uppercase">
+            <div className="max-w-3xl mx-auto text-center space-y-2">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-ink-900 tracking-tight font-display uppercase">
                 {whatWeDo.title}
               </h2>
-              <p className="text-sm sm:text-base text-neutral-muted font-light leading-relaxed">
+              <p className="text-xs sm:text-sm text-neutral-muted font-light leading-relaxed">
                 {whatWeDo.subtitle}
               </p>
             </div>
@@ -251,15 +247,11 @@ export default function AboutPage() {
           ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <ScrollReveal>
-          <div className="max-w-3xl mx-auto text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full liquid-glass-badge text-gold-900 text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-gold-700" />
-              <span>{journey.badge}</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink-900 tracking-tight font-display uppercase">
+          <div className="max-w-3xl mx-auto text-center space-y-2">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-ink-900 tracking-tight font-display uppercase">
               {journey.title}
             </h2>
-            <p className="text-sm sm:text-base text-neutral-muted font-light leading-relaxed">
+            <p className="text-xs sm:text-sm text-neutral-muted font-light leading-relaxed">
               {journey.subtitle}
             </p>
           </div>
@@ -444,8 +436,8 @@ export default function AboutPage() {
               <div className="bg-gradient-to-br from-ink-950 via-ink-900 to-ink-800 rounded-card-lg overflow-hidden shadow-elevated text-white">
                 <div className="relative w-full h-80 sm:h-96 bg-ink-950 overflow-hidden">
                   <Image
-                    src={founderData.image}
-                    alt={founderData.name}
+                    src={settings.founder_image || founderData.image}
+                    alt={settings.founder_name || founderData.name}
                     fill
                     sizes="(max-width: 768px) 100vw, 40vw"
                     priority
@@ -457,14 +449,14 @@ export default function AboutPage() {
                       Founder, Skill to Leadership
                     </span>
                     <h3 className="text-2xl font-black tracking-tight text-white font-display">
-                      {founderData.name}
+                      {settings.founder_name || founderData.name}
                     </h3>
                   </div>
                 </div>
 
                 <div className="p-6 space-y-2 border-t border-white/10 bg-white/5 backdrop-blur-sm">
                   <p className="text-xs text-gray-300 font-light leading-relaxed">
-                    {founderData.title}
+                    {settings.founder_title || founderData.title}
                   </p>
                   <p className="text-[11px] text-gold font-semibold">
                     {founderData.location}
@@ -477,12 +469,8 @@ export default function AboutPage() {
           {/* Founder Story & Quote */}
           <div className="lg:col-span-7 space-y-6">
             <ScrollReveal delay={80}>
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full liquid-glass-badge text-gold-900 text-xs font-bold uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5 text-gold-700" />
-                  <span>Leadership Vision</span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-ink-900 tracking-tight font-display uppercase">
+              <div className="space-y-2">
+                <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-ink-900 tracking-tight font-display uppercase">
                   Word from the Founder
                 </h2>
               </div>
@@ -492,7 +480,7 @@ export default function AboutPage() {
               <div className="p-5 rounded-2xl bg-cream-surface border-l-4 border-gold shadow-soft">
                 <p className="text-sm sm:text-base font-semibold italic text-ink-900 font-display leading-relaxed">
                   <GoldenQuoteText
-                    text={founderData.quote}
+                    text={settings.founder_quote || founderData.quote}
                     goldClassName="text-gold-700 font-bold not-italic"
                   />
                 </p>

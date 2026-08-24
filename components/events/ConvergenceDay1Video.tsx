@@ -5,15 +5,18 @@ import { Pause } from 'lucide-react';
 
 interface ConvergenceDay1VideoProps {
   src?: string;
+  videoSrc?: string;
   poster?: string;
   className?: string;
 }
 
 export function ConvergenceDay1Video({
-  src = '/images/convergence/Convergence-1.mp4',
+  src,
+  videoSrc,
   poster = '/images/Events/Event1.jpg',
   className = '',
 }: ConvergenceDay1VideoProps) {
+  const actualSrc = src || videoSrc || '/images/convergence/Convergence-1.mp4';
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -61,7 +64,7 @@ export function ConvergenceDay1Video({
     >
       <video
         ref={videoRef}
-        src={src}
+        src={actualSrc}
         poster={poster}
         autoPlay
         muted

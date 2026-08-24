@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(req: Request) {
   const { session, errorResponse } = requireAdminSession();
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, cohort: newCohort });
   } catch (err) {
     console.error('Create cohort error:', err);
@@ -105,6 +107,7 @@ export async function PUT(req: Request) {
       data,
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, cohort: updated });
   } catch (err) {
     console.error('Update cohort error:', err);
@@ -128,6 +131,7 @@ export async function DELETE(req: Request) {
       where: { id },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete cohort error:', err);

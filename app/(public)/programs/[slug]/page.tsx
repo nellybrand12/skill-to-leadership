@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface ProgramDetailPageProps {
   params: { slug: string };
@@ -116,13 +117,8 @@ export default async function ProgramDetailPage({ params }: ProgramDetailPagePro
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-7 space-y-5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full liquid-glass-badge text-gold-900 text-xs font-bold uppercase tracking-wider shadow-soft">
-                <Sparkles className="w-3.5 h-3.5 text-gold-700" />
-                <span>{badge}</span>
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display">
+            <div className="lg:col-span-7 space-y-4">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display">
                 {programName}
               </h1>
 

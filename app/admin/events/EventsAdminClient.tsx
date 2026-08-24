@@ -179,6 +179,7 @@ export function EventsAdminClient({ initialEvents }: { initialEvents: any[] }) {
   const handleToggleApplicationStatus = async (ev: any) => {
     const currentStatus = getEventLifecycleStatus(ev);
     const newStatus = currentStatus === 'ACTIVE' ? 'CLOSED' : 'ACTIVE';
+    const applicationsEnabled = newStatus === 'ACTIVE';
 
     try {
       const res = await fetch('/api/admin/events', {
@@ -187,6 +188,7 @@ export function EventsAdminClient({ initialEvents }: { initialEvents: any[] }) {
         body: JSON.stringify({
           id: ev.id,
           status: newStatus,
+          applicationsEnabled,
         }),
       });
       const data = await res.json();
@@ -213,8 +215,10 @@ export function EventsAdminClient({ initialEvents }: { initialEvents: any[] }) {
 
     setIsSubmitting(true);
     try {
+      const applicationsEnabled = eventForm.status === 'ACTIVE';
+      const payload = { ...eventForm, applicationsEnabled };
       const method = editingEvent ? 'PUT' : 'POST';
-      const body = editingEvent ? { ...eventForm, id: editingEvent.id } : eventForm;
+      const body = editingEvent ? { ...payload, id: editingEvent.id } : payload;
 
       const res = await fetch('/api/admin/events', {
         method,

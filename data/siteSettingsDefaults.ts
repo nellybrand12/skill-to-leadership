@@ -14,6 +14,19 @@ export interface SiteSettingsMap {
   hero_eyebrow: string;
   cohort2_countdown_date: string;
   cohort2_status: string;
+  founder_image: string;
+  founder_name: string;
+  founder_title: string;
+  founder_quote: string;
+  feature_1_title: string;
+  feature_1_desc: string;
+  feature_1_icon: string;
+  feature_2_title: string;
+  feature_2_desc: string;
+  feature_2_icon: string;
+  feature_3_title: string;
+  feature_3_desc: string;
+  feature_3_icon: string;
   [key: string]: string;
 }
 
@@ -33,4 +46,17 @@ export const defaultSettings: SiteSettingsMap = {
   hero_eyebrow: 'SKILL TO LEADERSHIP',
   cohort2_countdown_date: '2026-10-15T09:00:00Z',
   cohort2_status: 'Coming Soon — Applications Opening',
+  founder_image: '/images/Founder.jpg',
+  founder_name: 'Christopher Fonye',
+  founder_title: 'Civil Engineering Student at Bucknell University · Ashinaga Scholar · Projects for Peace grantee · Founder, Skill to Leadership',
+  founder_quote: 'In a world where time is a luxury, "Youths" are the wealthiest',
+  feature_1_title: 'Practical Skills',
+  feature_1_desc: 'Hands-on learning through real-world craft mastery',
+  feature_1_icon: 'Scissors',
+  feature_2_title: 'Mentorship & Leadership',
+  feature_2_desc: 'Personal growth and guidance beyond technical ability',
+  feature_2_icon: 'Compass',
+  feature_3_title: 'Community & Opportunity',
+  feature_3_desc: 'Connecting ambitious youth with networks, toolkits and seed capital',
+  feature_3_icon: 'Users',
 };

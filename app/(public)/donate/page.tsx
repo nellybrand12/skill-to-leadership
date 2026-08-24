@@ -31,15 +31,11 @@ export default function DonatePage() {
       {/* Header */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <div className="max-w-3xl mx-auto text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-glass-badge text-gold-900 text-xs font-bold uppercase tracking-wider shadow-soft">
-              <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
-              <span>Philanthropic Giving</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight uppercase font-display">
+          <div className="max-w-3xl mx-auto text-center space-y-3">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight uppercase font-display">
               Support the Next Generation
             </h1>
-            <p className="text-base sm:text-lg text-neutral-muted leading-relaxed font-light">
+            <p className="text-sm sm:text-base lg:text-lg text-neutral-muted leading-relaxed font-light">
               Your support helps Skill to Leadership provide young people with practical skills, mentorship, toolkits, and meaningful experiences that transform their futures.
             </p>
           </div>

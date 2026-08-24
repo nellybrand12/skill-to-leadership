@@ -10,23 +10,42 @@ export interface EventDateSource {
   endDateTime?: Date | string | null;
   date?: Date | string | null;
   status?: string | null;
+  applicationsEnabled?: boolean | null;
 }
 
 /**
- * Calculates authoritative server-side event lifecycle status
+ * Calculates authoritative server-side event lifecycle status.
+ * Explicit admin-configured status ('ACTIVE', 'CLOSED', 'ARCHIVED', 'UPCOMING')
+ * takes primary precedence.
  */
 export function getEventLifecycleStatus(event: EventDateSource): EventLifecycleStatus {
-  // If manual status override is set to ARCHIVED or CLOSED, honor it immediately
+  if (!event) return 'ACTIVE';
+
+  // 1. Direct explicit status overrides set by Admin
+  if (event.status === 'ACTIVE') {
+    return 'ACTIVE';
+  }
+  if (event.status === 'CLOSED') {
+    return 'CLOSED';
+  }
   if (event.status === 'ARCHIVED') {
     return 'ARCHIVED';
   }
-  if (event.status === 'CLOSED') {
+  if (event.status === 'UPCOMING') {
+    return 'UPCOMING';
+  }
+
+  // 2. Direct applicationsEnabled toggle flag
+  if (event.applicationsEnabled === true) {
+    return 'ACTIVE';
+  }
+  if (event.applicationsEnabled === false) {
     return 'CLOSED';
   }
 
   const now = new Date();
 
-  // If both start and end timestamps exist, calculate strictly by time
+  // 3. If start and end timestamps exist, calculate by time range
   if (event.startDateTime && event.endDateTime) {
     const start = new Date(event.startDateTime);
     const end = new Date(event.endDateTime);
@@ -40,19 +59,19 @@ export function getEventLifecycleStatus(event: EventDateSource): EventLifecycleS
     }
   }
 
-  // If only endDateTime exists and has passed
+  // 4. If only endDateTime exists
   if (event.endDateTime) {
     const end = new Date(event.endDateTime);
     if (now > end) return 'CLOSED';
   }
 
-  // If only startDateTime exists and is in the future
+  // 5. If only startDateTime exists
   if (event.startDateTime) {
     const start = new Date(event.startDateTime);
     if (now < start) return 'UPCOMING';
   }
 
-  // Fallback to legacy date field
+  // 6. Fallback to legacy date field
   if (event.date) {
     const eventDate = new Date(event.date);
     const endOfDay = new Date(eventDate);

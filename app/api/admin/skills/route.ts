@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
 
 export async function GET(req: Request) {
   const { session, errorResponse } = requireAdminSession();
@@ -85,6 +87,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, skill: newSkill });
   } catch (err) {
     console.error('Create skill error:', err);
@@ -114,11 +117,23 @@ export async function PUT(req: Request) {
       data.outcomes = JSON.stringify(data.outcomes);
     }
 
+    const oldSkill = await db.skill.findUnique({ where: { id } });
+
     const updated = await db.skill.update({
       where: { id },
       data,
     });
 
+    if (oldSkill) {
+      if (data.coverImage && oldSkill.coverImage !== data.coverImage) {
+        await cleanupOrphanedMedia(oldSkill.coverImage);
+      }
+      if (data.videoUrl && oldSkill.videoUrl !== data.videoUrl) {
+        await cleanupOrphanedMedia(oldSkill.videoUrl);
+      }
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, skill: updated });
   } catch (err) {
     console.error('Update skill error:', err);
@@ -138,10 +153,18 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Skill ID is required.' }, { status: 400 });
     }
 
+    const oldSkill = await db.skill.findUnique({ where: { id } });
+
     await db.skill.delete({
       where: { id },
     });
 
+    if (oldSkill) {
+      if (oldSkill.coverImage) await cleanupOrphanedMedia(oldSkill.coverImage);
+      if (oldSkill.videoUrl) await cleanupOrphanedMedia(oldSkill.videoUrl);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete skill error:', err);

@@ -1,68 +1,83 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Scissors, Shapes, Video, Palette } from 'lucide-react';
+import { db } from '@/lib/db';
+import { programsData } from '@/data/programs';
+import {
+  Scissors,
+  Shapes,
+  Video,
+  Palette,
+  Sparkles,
+  ArrowRight,
+  Compass,
+  Wrench,
+  Award,
+  Lightbulb,
+  GraduationCap,
+  Target,
+  Trophy,
+} from 'lucide-react';
 
-export function SkillsGrid() {
-  const skills = [
-    {
-      name: 'Braiding & Hairstyling',
-      slug: 'braiding',
-      shortDesc:
-        'Young participants developed professional hairstyling, intricate braiding techniques, client care, and salon entrepreneurship.',
-      icon: Scissors,
-      coverImage: '/images/Braiding.jpg',
-      prize: '100,000 FCFA Winner',
-      badge: 'Cohort 1 Track',
-    },
-    {
-      name: 'Nail Arts & Beauty',
-      slug: 'nail-artistry',
-      shortDesc:
-        'Participants developed practical beauty, precision nail artistry, custom extensions, and studio hygiene with an entrepreneurial mindset.',
-      icon: Palette,
-      coverImage: '/images/Nail_Art.jpg',
-      prize: '100,000 FCFA Winner',
-      badge: 'Cohort 1 Track',
-    },
-    {
-      name: 'Clay & Ceramic Arts',
-      slug: 'ceramic-sculpting',
-      shortDesc:
-        'Participants explored creativity, craftsmanship, cultural heritage, and artistic expression through tactile ceramic sculpting.',
-      icon: Shapes,
-      coverImage: '/images/Clay_and_ceramic_art.jpg',
-      prize: '100,000 FCFA Winner',
-      badge: 'Cohort 1 Track',
-    },
-    {
-      name: 'Content Creation & Media',
-      slug: 'content-creation',
-      shortDesc:
-        'Participants learned how to produce compelling digital video content, storytelling, and commercial branding through modern media.',
-      icon: Video,
-      coverImage: '/images/Content_creation.jpg',
-      prize: '100,000 FCFA Winner',
-      badge: 'Cohort 1 Track',
-    },
-  ];
+const ICON_MAP: Record<string, React.ElementType> = {
+  Scissors,
+  Shapes,
+  Video,
+  Palette,
+  Sparkles,
+  Compass,
+  Wrench,
+  Award,
+  Lightbulb,
+  GraduationCap,
+  Target,
+  Trophy,
+};
+
+export async function SkillsGrid() {
+  let dbSkills: any[] = [];
+  try {
+    dbSkills = await db.skill.findMany({
+      where: { published: true },
+      orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
+    });
+  } catch (err) {
+    console.error('Error loading skills for SkillsGrid:', err);
+    dbSkills = [];
+  }
+
+  const skills = dbSkills.length > 0
+    ? dbSkills.map((s) => ({
+        name: s.name,
+        slug: s.slug,
+        shortDesc: s.shortDesc,
+        icon: ICON_MAP[s.iconName] || Scissors,
+        coverImage: s.coverImage || '/images/Braiding.jpg',
+        prize: `${(s.prizeAmount || 100000).toLocaleString()} FCFA Winner`,
+        badge: s.cohort?.title || 'Fellowship Track',
+      }))
+    : programsData.map((p) => ({
+        name: p.name,
+        slug: p.slug,
+        shortDesc: p.shortDesc,
+        icon: ICON_MAP[p.iconName] || Scissors,
+        coverImage: p.coverImage,
+        prize: '100,000 FCFA Winner',
+        badge: 'Cohort 1 Track',
+      }));
 
   return (
     <section className="py-20 lg:py-28 bg-neutral-offwhite relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Heading */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-6">
-          <div className="max-w-2xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold-light text-gold-900 text-xs font-bold uppercase tracking-wider shadow-soft">
-              <Sparkles className="w-3.5 h-3.5 text-gold-700" />
-              <span>The First Cohort Disciplines</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-primary-navy tracking-tight font-display">
-              From Skills to Success
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-14 gap-4">
+          <div className="max-w-2xl space-y-2">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-ink-900 tracking-tight font-display uppercase">
+              Practical Disciplines
             </h2>
-            <p className="text-neutral-muted text-base sm:text-lg font-light leading-relaxed">
-              The first cohort successfully trained young people across four practical disciplines, pairing technical mastery with hands-on enterprise tools.
+            <p className="text-sm sm:text-base lg:text-lg text-neutral-muted leading-relaxed font-light">
+              Cohort 1 focused on 4 high-potential creative and technical crafts, pairing each with dedicated mentors, starter toolkits, and seed capital.
             </p>
           </div>
           <div>
@@ -76,7 +91,7 @@ export function SkillsGrid() {
           </div>
         </div>
 
-        {/* 4 Cards Grid */}
+        {/* Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {skills.map((skill) => {
             const Icon = skill.icon;

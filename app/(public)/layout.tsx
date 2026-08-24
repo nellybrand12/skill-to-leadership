@@ -3,6 +3,9 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PageTransition } from '@/components/layout/PageTransition';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function PublicLayout({
   children,
 }: {

@@ -1,14 +1,70 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { defaultSettings } from '@/data/siteSettingsDefaults';
 import { WhatsAppIcon } from '@/components/ui/icons/WhatsAppIcon';
-import { Save, CheckCircle2, AlertCircle, Sparkles, Clock, Share2, BookOpen, Lock, KeyRound } from 'lucide-react';
+import {
+  Save,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Share2,
+  BookOpen,
+  Lock,
+  KeyRound,
+  User,
+  Upload,
+  Layers,
+  Sparkles,
+  Scissors,
+  Compass,
+  Users,
+  Award,
+  Book,
+  Trophy,
+  Heart,
+  Globe,
+  Lightbulb,
+  ShieldCheck,
+  Target,
+  GraduationCap,
+  Wrench,
+  Palette,
+  Video,
+} from 'lucide-react';
 
-export function SettingsClient({ initialSettings }: { initialSettings: any[] }) {
+const AVAILABLE_ICONS = [
+  { name: 'Scissors', label: 'Scissors / Hairstyling', icon: Scissors },
+  { name: 'Compass', label: 'Compass / Guidance', icon: Compass },
+  { name: 'Users', label: 'Users / Community', icon: Users },
+  { name: 'Wrench', label: 'Wrench / Technical Craft', icon: Wrench },
+  { name: 'Lightbulb', label: 'Lightbulb / Innovation', icon: Lightbulb },
+  { name: 'Target', label: 'Target / Goal', icon: Target },
+  { name: 'Trophy', label: 'Trophy / Achievement', icon: Trophy },
+  { name: 'Award', label: 'Award / Leadership', icon: Award },
+  { name: 'GraduationCap', label: 'Graduation / Mastery', icon: GraduationCap },
+  { name: 'Heart', label: 'Heart / Support', icon: Heart },
+  { name: 'Globe', label: 'Globe / Network', icon: Globe },
+  { name: 'Book', label: 'Book / Education', icon: Book },
+  { name: 'Palette', label: 'Palette / Artistry', icon: Palette },
+  { name: 'Video', label: 'Video / Media', icon: Video },
+  { name: 'ShieldCheck', label: 'Shield / Excellence', icon: ShieldCheck },
+  { name: 'Sparkles', label: 'Sparkles / Inspiration', icon: Sparkles },
+];
+
+export function SettingsClient({
+  initialSettings,
+}: {
+  initialSettings: any[];
+}) {
+  const router = useRouter();
+
+  // 1. Settings Map State
   const [settings, setSettings] = useState<Record<string, string>>(() => {
-    const map = { ...defaultSettings };
+    const map: Record<string, string> = { ...defaultSettings };
     initialSettings.forEach((item) => {
       if (item.value !== undefined && item.value !== null && item.value.trim() !== '') {
         map[item.key] = item.value;
@@ -25,7 +81,11 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Password Change State
+  // 2. Founder Image Upload State
+  const [uploadingFounderImage, setUploadingFounderImage] = useState(false);
+  const [founderImageMessage, setFounderImageMessage] = useState('');
+
+  // 3. Password Change State
   const [passwordForm, setPasswordForm] = useState({
     newPassword: '',
     confirmPassword: '',
@@ -37,7 +97,7 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
   const handleChange = (key: string, value: string) => {
     setSettings((prev) => {
       const updated = { ...prev, [key]: value };
-      // Auto-update whatsapp link when whatsapp number changes if not customized
+      // Auto-update whatsapp link when whatsapp number changes
       if (key === 'contact_whatsapp' && value) {
         const cleanNumber = value.replace(/[^0-9]/g, '');
         if (cleanNumber) {
@@ -46,6 +106,36 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
       }
       return updated;
     });
+  };
+
+  const handleFounderImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFounderImage(true);
+    setFounderImageMessage('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'founder');
+
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        handleChange('founder_image', data.url);
+        setFounderImageMessage('New founder image uploaded! Click "Save All Settings" below to publish.');
+      } else {
+        setError(data.error || 'Failed to upload founder image.');
+      }
+    } catch {
+      setError('Network error while uploading founder image.');
+    } finally {
+      setUploadingFounderImage(false);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -68,6 +158,7 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
 
       if (res.ok) {
         setMessage('Settings successfully saved to Supabase and immediately active on the public website!');
+        router.refresh();
         setTimeout(() => setMessage(''), 5000);
       } else {
         setError('Failed to update settings. Please check database connection.');
@@ -125,9 +216,91 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
   return (
     <div className="space-y-10 max-w-4xl">
       {/* 1. Global Settings Form */}
-      <form onSubmit={handleSave} className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-border shadow-soft space-y-8">
+      <form onSubmit={handleSave} className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-border shadow-soft space-y-10">
         
-        {/* Group 1: Contact Information (WhatsApp & Email) */}
+        {/* Group A: Founder Media & Information */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-primary-navy font-bold text-sm uppercase tracking-wider pb-2 border-b border-neutral-border">
+            <User className="w-4 h-4 text-gold-600" />
+            <h2>Founder Profile & Image (Public Website)</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start">
+            {/* Founder Image Preview & Uploader */}
+            <div className="sm:col-span-4 space-y-3">
+              <label className="block text-xs font-bold text-primary-navy">Founder Portrait Image</label>
+              <div className="relative w-full h-56 rounded-2xl overflow-hidden bg-ink-950 border border-neutral-border shadow-soft">
+                <Image
+                  src={settings['founder_image'] || '/images/Founder.jpg'}
+                  alt="Founder Preview"
+                  fill
+                  className="object-cover object-top"
+                />
+              </div>
+
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFounderImageUpload}
+                  disabled={uploadingFounderImage}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  isLoading={uploadingFounderImage}
+                  leftIcon={<Upload className="w-3.5 h-3.5" />}
+                  className="w-full justify-center text-xs"
+                >
+                  {uploadingFounderImage ? 'Uploading Image...' : 'Replace Founder Image'}
+                </Button>
+              </div>
+              <span className="text-[10px] text-neutral-muted block">
+                JPG, PNG, or WebP. The previous uploaded image is safely removed from storage upon replacement.
+              </span>
+              {founderImageMessage && (
+                <div className="text-[11px] text-emerald-700 font-semibold">{founderImageMessage}</div>
+              )}
+            </div>
+
+            {/* Founder Text Details */}
+            <div className="sm:col-span-8 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-primary-navy mb-1">Founder Name</label>
+                <input
+                  type="text"
+                  value={settings['founder_name'] || 'Christopher Fonye'}
+                  onChange={(e) => handleChange('founder_name', e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-lg border border-neutral-border text-xs focus:ring-2 focus:ring-gold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-primary-navy mb-1">Founder Title & Credentials</label>
+                <input
+                  type="text"
+                  value={settings['founder_title'] || 'Civil Engineering Student at Bucknell University · Ashinaga Scholar · Projects for Peace grantee · Founder, Skill to Leadership'}
+                  onChange={(e) => handleChange('founder_title', e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-lg border border-neutral-border text-xs focus:ring-2 focus:ring-gold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-primary-navy mb-1">Founder Quote</label>
+                <textarea
+                  rows={2}
+                  value={settings['founder_quote'] || 'In a world where time is a luxury, "Youths" are the wealthiest'}
+                  onChange={(e) => handleChange('founder_quote', e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-lg border border-neutral-border text-xs focus:ring-2 focus:ring-gold"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Group B: Contact Information (WhatsApp & Email) */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-primary-navy font-bold text-sm uppercase tracking-wider pb-2 border-b border-neutral-border">
             <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
@@ -174,9 +347,6 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
               placeholder="https://wa.me/237668620675"
               className="w-full px-3.5 py-2 rounded-lg border border-neutral-border text-xs font-mono focus:ring-2 focus:ring-gold"
             />
-            <span className="text-[10px] text-neutral-muted">
-              When visitors click on the WhatsApp contact number on the website, they are taken directly to this chat URL.
-            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -204,7 +374,7 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
           </div>
         </div>
 
-        {/* Group 2: Hero Section */}
+        {/* Group D: Hero Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-primary-navy font-bold text-sm uppercase tracking-wider pb-2 border-b border-neutral-border">
             <Sparkles className="w-4 h-4 text-gold-600" />
@@ -232,7 +402,7 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
           </div>
         </div>
 
-        {/* Group 3: Countdown & Cohort 2 */}
+        {/* Group E: Countdown & Cohort 2 */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-primary-navy font-bold text-sm uppercase tracking-wider pb-2 border-b border-neutral-border">
             <Clock className="w-4 h-4 text-gold-600" />
@@ -262,7 +432,7 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
           </div>
         </div>
 
-        {/* Group 4: Social Links */}
+        {/* Group F: Social Links */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-primary-navy font-bold text-sm uppercase tracking-wider pb-2 border-b border-neutral-border">
             <Share2 className="w-4 h-4 text-gold-600" />
@@ -302,7 +472,7 @@ export function SettingsClient({ initialSettings }: { initialSettings: any[] }) 
           </div>
         </div>
 
-        {/* Group 5: Scripture Quote */}
+        {/* Group G: Scripture Quote */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-primary-navy font-bold text-sm uppercase tracking-wider pb-2 border-b border-neutral-border">
             <BookOpen className="w-4 h-4 text-gold-600" />

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAdminSession } from '@/lib/auth';
+import { revalidatePath } from 'next/cache';
 
 export async function PATCH(req: Request) {
   try {
@@ -22,6 +23,7 @@ export async function PATCH(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, application: updated });
   } catch (err) {
     console.error('Update application status error:', err);

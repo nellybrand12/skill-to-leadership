@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
 
 export async function POST(req: Request) {
   const { session, errorResponse } = requireAdminSession();
@@ -47,6 +49,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, participant });
   } catch (err) {
     console.error('Create event participant error:', err);
@@ -67,14 +70,21 @@ export async function PUT(req: Request) {
     }
 
     if (data.displayOrder !== undefined) data.displayOrder = Number(data.displayOrder);
-    if (data.published !== undefined) data.published = Boolean(data.published);
     if (data.isWinner !== undefined) data.isWinner = Boolean(data.isWinner);
+    if (data.published !== undefined) data.published = Boolean(data.published);
+
+    const oldParticipant = await db.eventParticipant.findUnique({ where: { id } });
 
     const updated = await db.eventParticipant.update({
       where: { id },
       data,
     });
 
+    if (oldParticipant && oldParticipant.photoUrl !== updated.photoUrl) {
+      await cleanupOrphanedMedia(oldParticipant.photoUrl);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, participant: updated });
   } catch (err) {
     console.error('Update event participant error:', err);
@@ -94,10 +104,17 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Participant ID is required.' }, { status: 400 });
     }
 
+    const oldParticipant = await db.eventParticipant.findUnique({ where: { id } });
+
     await db.eventParticipant.delete({
       where: { id },
     });
 
+    if (oldParticipant?.photoUrl) {
+      await cleanupOrphanedMedia(oldParticipant.photoUrl);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete event participant error:', err);

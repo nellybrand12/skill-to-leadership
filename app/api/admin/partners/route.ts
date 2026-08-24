@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
 
 export async function GET(req: Request) {
   const { session, errorResponse } = requireAdminSession();
@@ -50,6 +52,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, partner: newPartner });
   } catch (err) {
     console.error('Create partner error:', err);
@@ -73,11 +76,18 @@ export async function PUT(req: Request) {
     if (data.isFeatured !== undefined) data.isFeatured = Boolean(data.isFeatured);
     if (data.published !== undefined) data.published = Boolean(data.published);
 
+    const oldPartner = await db.partner.findUnique({ where: { id } });
+
     const updated = await db.partner.update({
       where: { id },
       data,
     });
 
+    if (oldPartner && oldPartner.logoUrl !== updated.logoUrl) {
+      await cleanupOrphanedMedia(oldPartner.logoUrl);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, partner: updated });
   } catch (err) {
     console.error('Update partner error:', err);
@@ -97,10 +107,17 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Partner ID is required.' }, { status: 400 });
     }
 
+    const oldPartner = await db.partner.findUnique({ where: { id } });
+
     await db.partner.delete({
       where: { id },
     });
 
+    if (oldPartner?.logoUrl) {
+      await cleanupOrphanedMedia(oldPartner.logoUrl);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete partner error:', err);

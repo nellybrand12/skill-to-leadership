@@ -19,7 +19,7 @@ export default async function AdminSettingsPage() {
           Website Settings & CMS
         </h1>
         <p className="text-xs sm:text-sm text-neutral-muted">
-          Manage dynamic countdown timers, hero messaging, verified statistics, and contact information without editing code.
+          Manage dynamic countdown timers, hero messaging, founder media, feature cards, and contact information without editing code.
         </p>
       </div>
 

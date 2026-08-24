@@ -1,17 +1,23 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL || process.env.DIRECT_URL;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   console.log('🌱 Starting comprehensive database seed for Skill to Leadership...');
 
   // 1. Admin User
-  const initialPassword = process.env.INITIAL_ADMIN_PASSWORD || 'admin123';
+  const initialPassword = process.env.INITIAL_ADMIN_PASSWORD || 'password123';
   const passwordHash = await bcrypt.hash(initialPassword, 10);
   const admin = await prisma.user.upsert({
     where: { email: 'admin@skilltoleadership.org' },
-    update: {},
+    update: { password: passwordHash },
     create: {
       email: 'admin@skilltoleadership.org',
       password: passwordHash,
@@ -20,7 +26,19 @@ async function main() {
       role: 'SUPER_ADMIN',
     },
   });
-  console.log('✅ Admin user created/verified:', admin.email);
+
+  const founderAdmin = await prisma.user.upsert({
+    where: { email: 'fonyechris@gmail.com' },
+    update: { password: passwordHash },
+    create: {
+      email: 'fonyechris@gmail.com',
+      password: passwordHash,
+      firstName: 'Christopher',
+      lastName: 'Fonye',
+      role: 'SUPER_ADMIN',
+    },
+  });
+  console.log('✅ Admin users created/verified:', admin.email, founderAdmin.email);
 
   // 2. Cohorts (Cohort 1 & Cohort 2)
   const cohort1 = await prisma.cohort.upsert({
@@ -245,12 +263,12 @@ async function main() {
   }
   console.log('✅ Events & Entrepreneur Spotlight ready');
 
-  // 5. Partners
+  // 5. Partners (Including Sakura & Gigi Nails with real logos)
   const partnersData = [
     {
       name: 'Bucknell University',
       slug: 'bucknell-university',
-      logoUrl: '/partners/Bucknell.jpg',
+      logoUrl: '/partners/Bucknell.png',
       description: 'A private liberal arts university in Lewisburg, Pennsylvania, supporting youth leadership development, intercultural educational exchange, and social venture innovation.',
       website: 'https://www.bucknell.edu',
       category: 'ACADEMIC',
@@ -272,7 +290,7 @@ async function main() {
     {
       name: 'Ashinaga',
       slug: 'ashinaga',
-      logoUrl: '/partners/Ashinaga_Logo.png',
+      logoUrl: '/partners/Ashinaga.png',
       description: 'An international nonprofit organization dedicated to providing educational and emotional support to orphaned and underprivileged youth across Africa and Japan.',
       website: 'https://www.ashinaga.org',
       category: 'GLOBAL_FELLOWSHIP',
@@ -283,13 +301,35 @@ async function main() {
     {
       name: 'Open Dreams',
       slug: 'open-dreams',
-      logoUrl: '/partners/Open-dreams.jpg',
+      logoUrl: '/partners/Open-dreams.png',
       description: 'An educational organization that democratizes access to world-class university scholarships and leadership opportunities for high-achieving low-income students in Cameroon.',
       website: 'https://www.open-dreams.org',
       category: 'COMMUNITY',
       isFeatured: true,
       published: true,
       orderIndex: 4,
+    },
+    {
+      name: 'Gigi Nails',
+      slug: 'gigi-nails',
+      logoUrl: '/partners/Gigi-nails.png',
+      description: 'Supporting studio beauty training, professional salon equipment, and masterclass sessions for young technicians.',
+      website: null,
+      category: 'CORPORATE',
+      isFeatured: true,
+      published: true,
+      orderIndex: 5,
+    },
+    {
+      name: 'Sakura',
+      slug: 'sakura',
+      logoUrl: '/partners/Sakura.png',
+      description: 'Partnering in craft disciplines, artisan development, and community empowerment in Cameroon.',
+      website: null,
+      category: 'COMMUNITY',
+      isFeatured: true,
+      published: true,
+      orderIndex: 6,
     },
   ];
 
@@ -300,7 +340,91 @@ async function main() {
       create: p,
     });
   }
-  console.log('✅ Partners ready');
+  console.log('✅ 6 Partners ready (including Sakura & Gigi Nails)');
+
+  // 5.1 Gallery Items (Unified Cohort 1 & Impact Gallery)
+  const galleryItemsSeed = [
+    {
+      title: 'Grand Finale & Award Ceremony',
+      description: 'Fellows celebrating successful completion and receiving micro-grant prizes in Yaoundé.',
+      imageUrl: '/images/Closing-day/1.jpg',
+      category: 'AWARDS',
+      cohortId: cohort1.id,
+      orderIndex: 1,
+      published: true,
+    },
+    {
+      title: 'Intensive Practical Studio Session',
+      description: 'Hands-on instruction where fellows refine technical craft techniques with dedicated instructors.',
+      imageUrl: '/images/Gallery/gall1.jpg',
+      category: 'WORKSHOPS',
+      cohortId: cohort1.id,
+      orderIndex: 2,
+      published: true,
+    },
+    {
+      title: 'Exhibition & Craft Demonstrations',
+      description: 'Presenting finished original works to guests, family members, and community mentors.',
+      imageUrl: '/images/Closing-day/2.jpg',
+      category: 'COMPETITION',
+      cohortId: cohort1.id,
+      orderIndex: 3,
+      published: true,
+    },
+    {
+      title: 'Material Craftsmanship & Precision',
+      description: 'Focus, dedication, and precision during live studio challenges.',
+      imageUrl: '/images/Gallery/gall2.jpg',
+      category: 'WORKSHOPS',
+      cohortId: cohort1.id,
+      orderIndex: 4,
+      published: true,
+    },
+    {
+      title: 'Fellowship Solidarity & Community',
+      description: 'Building lifelong bonds, mutual encouragement, and professional networks.',
+      imageUrl: '/images/Closing-day/3.jpg',
+      category: 'AWARDS',
+      cohortId: cohort1.id,
+      orderIndex: 5,
+      published: true,
+    },
+    {
+      title: 'Collaborative Studio Exploration',
+      description: 'Fellows exchanging ideas and peer feedback on complex artistic projects.',
+      imageUrl: '/images/Gallery/gall3.jpg',
+      category: 'WORKSHOPS',
+      cohortId: cohort1.id,
+      orderIndex: 6,
+      published: true,
+    },
+    {
+      title: 'Artisan Toolkit Mastery',
+      description: 'Mastering professional equipment that fellows keep upon graduating the fellowship.',
+      imageUrl: '/images/Gallery/gall4.jpg',
+      category: 'WORKSHOPS',
+      cohortId: cohort1.id,
+      orderIndex: 7,
+      published: true,
+    },
+  ];
+
+  for (const gi of galleryItemsSeed) {
+    const existing = await prisma.galleryItem.findFirst({
+      where: { imageUrl: gi.imageUrl },
+    });
+    if (existing) {
+      await prisma.galleryItem.update({
+        where: { id: existing.id },
+        data: gi,
+      });
+    } else {
+      await prisma.galleryItem.create({
+        data: gi,
+      });
+    }
+  }
+  console.log('✅ Gallery items ready for Cohort 1 & Impact');
 
   // 6. Stories
   const storiesData = [
@@ -433,7 +557,38 @@ async function main() {
       await prisma.testimonial.create({ data: tm });
     }
   }
-  console.log('✅ Testimonials ready');
+  // 8. Site Settings (Defaults)
+  const defaultSiteSettings = [
+    { key: 'hero_heading', value: 'TURNING SKILLS INTO LEADERSHIP', label: 'Hero Heading', group: 'HERO' },
+    { key: 'hero_subtext', value: 'An experiential youth development non-profit empowering young changemakers in Cameroon with hands-on craft mastery, mentorship, starter toolkits, and seed prize capital.', label: 'Hero Subtext', group: 'HERO' },
+    { key: 'founder_image', value: '/images/Founder.jpg', label: 'Founder Image', group: 'BRAND' },
+    { key: 'founder_name', value: 'Christopher Fonye', label: 'Founder Name', group: 'BRAND' },
+    { key: 'founder_title', value: 'Civil Engineering Student at Bucknell University · Ashinaga Scholar · Projects for Peace grantee · Founder, Skill to Leadership', label: 'Founder Title', group: 'BRAND' },
+    { key: 'founder_quote', value: 'In a world where time is a luxury, "Youths" are the wealthiest', label: 'Founder Quote', group: 'BRAND' },
+    { key: 'feature_1_title', value: 'Practical Skills', label: 'Feature 1 Title', group: 'HERO' },
+    { key: 'feature_1_desc', value: 'Hands-on learning through real-world craft mastery', label: 'Feature 1 Description', group: 'HERO' },
+    { key: 'feature_1_icon', value: 'Scissors', label: 'Feature 1 Icon', group: 'HERO' },
+    { key: 'feature_2_title', value: 'Mentorship & Leadership', label: 'Feature 2 Title', group: 'HERO' },
+    { key: 'feature_2_desc', value: 'Personal growth and guidance beyond technical ability', label: 'Feature 2 Description', group: 'HERO' },
+    { key: 'feature_2_icon', value: 'Compass', label: 'Feature 2 Icon', group: 'HERO' },
+    { key: 'feature_3_title', value: 'Community & Opportunity', label: 'Feature 3 Title', group: 'HERO' },
+    { key: 'feature_3_desc', value: 'Connecting ambitious youth with networks, toolkits and seed capital', label: 'Feature 3 Description', group: 'HERO' },
+    { key: 'feature_3_icon', value: 'Users', label: 'Feature 3 Icon', group: 'HERO' },
+    { key: 'contact_email', value: 'fonyechris@gmail.com', label: 'Contact Email', group: 'CONTACT' },
+    { key: 'contact_whatsapp', value: '+237 668 62 06 75', label: 'Contact WhatsApp', group: 'CONTACT' },
+    { key: 'contact_whatsapp_link', value: 'https://wa.me/237668620675', label: 'WhatsApp Direct Link', group: 'CONTACT' },
+    { key: 'contact_location', value: 'Yaoundé, Centre Region, Cameroon', label: 'Location', group: 'CONTACT' },
+    { key: 'contact_working_hours', value: 'Monday – Friday: 8:30 AM – 5:30 PM WAT', label: 'Working Hours', group: 'CONTACT' },
+  ];
+
+  for (const st of defaultSiteSettings) {
+    await prisma.siteSetting.upsert({
+      where: { key: st.key },
+      update: {},
+      create: st,
+    });
+  }
+  console.log('✅ Site Settings ready');
 
   console.log('✨ All seed data verified and ready!');
 }

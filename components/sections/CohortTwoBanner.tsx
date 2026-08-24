@@ -12,19 +12,12 @@ export function CohortTwoBanner() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-7">
         
-        <ScrollReveal>
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold/20 text-gold text-xs font-black uppercase tracking-widest shadow-soft">
-            <Sparkles className="w-4 h-4" />
-            <span>The Next Chapter</span>
-          </div>
-        </ScrollReveal>
-
         <ScrollReveal delay={60}>
           <div className="space-y-2">
-            <div className="text-xl sm:text-2xl font-extrabold uppercase tracking-widest text-gold-light font-display">
+            <div className="text-lg sm:text-2xl font-extrabold uppercase tracking-widest text-gold-300 font-display">
               Cohort 2
             </div>
-            <h2 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white font-display uppercase">
+            <h2 className="text-3xl sm:text-5xl lg:text-7xl font-black tracking-tight text-white font-display uppercase">
               Coming Soon
             </h2>
           </div>

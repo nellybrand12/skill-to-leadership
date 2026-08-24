@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
 
 export async function GET() {
   const { session, errorResponse } = requireAdminSession();
@@ -46,6 +48,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, testimonial: created });
   } catch (err) {
     console.error('Create testimonial error:', err);
@@ -68,11 +71,18 @@ export async function PUT(req: Request) {
     if (data.displayOrder !== undefined) data.displayOrder = Number(data.displayOrder);
     if (data.published !== undefined) data.published = Boolean(data.published);
 
+    const oldTestimonial = await db.testimonial.findUnique({ where: { id } });
+
     const updated = await db.testimonial.update({
       where: { id },
       data,
     });
 
+    if (oldTestimonial && oldTestimonial.image !== updated.image) {
+      await cleanupOrphanedMedia(oldTestimonial.image);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, testimonial: updated });
   } catch (err) {
     console.error('Update testimonial error:', err);
@@ -92,10 +102,17 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Testimonial ID is required.' }, { status: 400 });
     }
 
+    const oldTestimonial = await db.testimonial.findUnique({ where: { id } });
+
     await db.testimonial.delete({
       where: { id },
     });
 
+    if (oldTestimonial?.image) {
+      await cleanupOrphanedMedia(oldTestimonial.image);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete testimonial error:', err);

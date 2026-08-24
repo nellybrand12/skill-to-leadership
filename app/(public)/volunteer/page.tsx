@@ -4,6 +4,9 @@ import { VolunteerForm } from '@/components/forms/VolunteerForm';
 import { HeartHandshake, Sparkles, Building2, Users, Briefcase } from 'lucide-react';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: 'Partner, Mentor & Join Us | Skill to Leadership',
   description: 'Join Skill to Leadership as an institutional partner, fellowship mentor, technical workshop instructor, or operational staff member.',
@@ -11,19 +14,15 @@ export const metadata = {
 
 export default function VolunteerPage() {
   return (
-    <div className="space-y-16 py-12 lg:py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 bg-cream-canvas">
+    <div className="space-y-12 sm:space-y-16 py-10 sm:py-12 lg:py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 bg-cream-canvas">
       
       {/* Header */}
       <ScrollReveal>
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-glass-badge text-gold-900 text-xs font-bold uppercase tracking-wider shadow-soft">
-            <HeartHandshake className="w-3.5 h-3.5 text-gold-700" />
-            <span>Collaboration & Involvement</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display">
+        <div className="text-center space-y-3">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display uppercase">
             Partner, Mentor & Join Our Team
           </h1>
-          <p className="text-base sm:text-lg text-neutral-muted max-w-2xl mx-auto font-light leading-relaxed">
+          <p className="text-sm sm:text-base lg:text-lg text-neutral-muted max-w-2xl mx-auto font-light leading-relaxed">
             Whether you are an organization seeking to sponsor upcoming cohorts, a professional ready to mentor young fellows, or an individual wanting to join our staff — send us a message below.
           </p>
         </div>

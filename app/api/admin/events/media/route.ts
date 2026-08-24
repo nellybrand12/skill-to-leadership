@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
 
 export async function POST(req: Request) {
   const { session, errorResponse } = requireAdminSession();
@@ -28,6 +30,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, media });
   } catch (err) {
     console.error('Create event media error:', err);
@@ -47,10 +50,17 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Media ID is required.' }, { status: 400 });
     }
 
+    const oldMedia = await db.eventMedia.findUnique({ where: { id } });
+
     await db.eventMedia.delete({
       where: { id },
     });
 
+    if (oldMedia?.url) {
+      await cleanupOrphanedMedia(oldMedia.url);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete event media error:', err);

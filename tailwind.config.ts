@@ -87,8 +87,8 @@ const config: Config = {
       boxShadow: {
         'soft': '0 10px 30px -5px rgba(24, 35, 63, 0.05), 0 4px 10px -2px rgba(24, 35, 63, 0.02)',
         'elevated': '0 20px 45px -10px rgba(24, 35, 63, 0.09), 0 8px 16px -4px rgba(24, 35, 63, 0.03)',
-        'gold-glow': '0 10px 35px -5px rgba(244, 180, 26, 0.35)',
-        'ink-glow': '0 20px 50px -10px rgba(14, 22, 38, 0.5)',
+        'gold-glow': '0 10px 25px -5px rgba(24, 35, 63, 0.08)',
+        'ink-glow': '0 20px 40px -10px rgba(14, 22, 38, 0.25)',
       },
     },
   },

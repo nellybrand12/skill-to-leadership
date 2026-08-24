@@ -3,6 +3,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { HelpCircle, Sparkles, MessageCircle, Heart, ArrowRight } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: 'FAQ | Frequently Asked Questions | Skill to Leadership',
   description: 'Find answers to common questions about Skill to Leadership fellowships, Cohort 2, starter toolkits, and how to support.',
@@ -37,19 +40,15 @@ export default function FAQPage() {
   ];
 
   return (
-    <div className="space-y-24 py-12 lg:py-20 bg-cream-canvas">
+    <div className="space-y-16 sm:space-y-24 py-10 sm:py-12 lg:py-20 bg-cream-canvas">
       
       {/* Header */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-light text-gold-900 text-xs font-bold uppercase tracking-wider shadow-soft">
-            <HelpCircle className="w-3.5 h-3.5 text-gold-700" />
-            <span>Got Questions?</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display">
+        <div className="max-w-3xl mx-auto text-center space-y-3">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display uppercase">
             Frequently Asked Questions
           </h1>
-          <p className="text-lg text-neutral-muted leading-relaxed font-light">
+          <p className="text-sm sm:text-base lg:text-lg text-neutral-muted leading-relaxed font-light">
             Everything you need to know about Skill to Leadership, our programs, and ways to get involved.
           </p>
         </div>

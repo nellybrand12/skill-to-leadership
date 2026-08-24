@@ -100,14 +100,10 @@ export default async function ProgramsPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
           <div className="max-w-3xl mx-auto text-center space-y-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full liquid-glass-badge text-gold-900 text-xs font-bold uppercase tracking-wider shadow-soft">
-              <Sparkles className="w-3.5 h-3.5 text-gold-700" />
-              <span>Practical Disciplines</span>
-            </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-ink-900 tracking-tight font-display uppercase">
               Skills for Self-Reliance
             </h1>
-            <p className="text-base sm:text-lg text-neutral-muted leading-relaxed font-light">
+            <p className="text-sm sm:text-base lg:text-lg text-neutral-muted leading-relaxed font-light">
               Every program track at Skill to Leadership combines intensive technical craft, comprehensive toolkits, client etiquette, and startup mentorship.
             </p>
           </div>

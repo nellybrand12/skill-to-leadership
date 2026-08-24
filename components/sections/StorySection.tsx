@@ -19,10 +19,7 @@ export function StorySection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Transformation Header */}
-        <div className="text-center max-w-4xl mx-auto mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gold-light text-gold-900 text-xs font-bold uppercase tracking-wider">
-            <span>The Core Transformation</span>
-          </div>
+        <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16 space-y-3">
           
           {/* Progression forced to single line on desktop and scaled on mobile */}
           <h2 className="text-[clamp(0.875rem,3.2vw,2.25rem)] font-extrabold text-primary-navy tracking-tight whitespace-nowrap overflow-hidden text-ellipsis flex items-center justify-center gap-1.5 sm:gap-3 flex-nowrap font-display">

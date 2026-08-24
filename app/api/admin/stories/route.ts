@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAdminSession } from '@/lib/auth';
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +29,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, story });
   } catch (err) {
     console.error('Create story error:', err);
@@ -43,7 +46,15 @@ export async function DELETE(req: Request) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: 'Missing story id.' }, { status: 400 });
 
+    const oldStory = await db.story.findUnique({ where: { id } });
+
     await db.story.delete({ where: { id } });
+
+    if (oldStory?.coverImage) {
+      await cleanupOrphanedMedia(oldStory.coverImage);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete story error:', err);

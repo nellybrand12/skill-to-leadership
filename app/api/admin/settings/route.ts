@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAdminSession } from '@/lib/auth';
 
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
+
 export async function POST(req: Request) {
   try {
     const session = getAdminSession();
@@ -14,6 +17,11 @@ export async function POST(req: Request) {
 
     if (Array.isArray(settings)) {
       for (const s of settings) {
+        // If updating a media setting, fetch old setting first
+        const existing = await db.siteSetting.findUnique({
+          where: { key: s.key },
+        });
+
         await db.siteSetting.upsert({
           where: { key: s.key },
           update: { value: s.value },
@@ -24,9 +32,14 @@ export async function POST(req: Request) {
             group: s.group || 'GENERAL',
           },
         });
+
+        if (existing && existing.value !== s.value && existing.value?.startsWith('/uploads/')) {
+          await cleanupOrphanedMedia(existing.value);
+        }
       }
     }
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Settings update error:', err);

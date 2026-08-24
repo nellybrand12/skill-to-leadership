@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
 
 export async function GET() {
   const { session, errorResponse } = requireAdminSession();
@@ -132,6 +134,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, event: newEvent });
   } catch (err) {
     console.error('Create event error:', err);
@@ -181,6 +184,8 @@ export async function PUT(req: Request) {
     if (data.hasWinner !== undefined) data.hasWinner = Boolean(data.hasWinner);
     if (data.isVirtual !== undefined) data.isVirtual = Boolean(data.isVirtual);
 
+    const oldEvent = await db.event.findUnique({ where: { id } });
+
     const updated = await db.event.update({
       where: { id },
       data,
@@ -190,6 +195,16 @@ export async function PUT(req: Request) {
       },
     });
 
+    if (oldEvent) {
+      if (data.coverImage && oldEvent.coverImage !== data.coverImage) {
+        await cleanupOrphanedMedia(oldEvent.coverImage);
+      }
+      if (data.winnerPhoto && oldEvent.winnerPhoto !== data.winnerPhoto) {
+        await cleanupOrphanedMedia(oldEvent.winnerPhoto);
+      }
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, event: updated });
   } catch (err) {
     console.error('Update event error:', err);
@@ -209,10 +224,30 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'ID is required.' }, { status: 400 });
     }
 
+    const oldEvent = await db.event.findUnique({
+      where: { id },
+      include: {
+        eventParticipants: true,
+        eventMedia: true,
+      },
+    });
+
     await db.event.delete({
       where: { id },
     });
 
+    if (oldEvent) {
+      if (oldEvent.coverImage) await cleanupOrphanedMedia(oldEvent.coverImage);
+      if (oldEvent.winnerPhoto) await cleanupOrphanedMedia(oldEvent.winnerPhoto);
+      for (const p of oldEvent.eventParticipants) {
+        if (p.photoUrl) await cleanupOrphanedMedia(p.photoUrl);
+      }
+      for (const m of oldEvent.eventMedia) {
+        if (m.url) await cleanupOrphanedMedia(m.url);
+      }
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete event error:', err);

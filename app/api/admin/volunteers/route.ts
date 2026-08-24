@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/auth';
 import { db } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { cleanupOrphanedMedia } from '@/lib/mediaStorage';
 
 export async function GET() {
   const { session, errorResponse } = requireAdminSession();
@@ -65,6 +67,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, volunteer: created });
   } catch (err) {
     console.error('Create volunteer error:', err);
@@ -88,11 +91,18 @@ export async function PUT(req: Request) {
     if (data.isStaff !== undefined) data.isStaff = Boolean(data.isStaff);
     if (data.published !== undefined) data.published = Boolean(data.published);
 
+    const oldVolunteer = await db.volunteer.findUnique({ where: { id } });
+
     const updated = await db.volunteer.update({
       where: { id },
       data,
     });
 
+    if (oldVolunteer && oldVolunteer.imageUrl !== updated.imageUrl) {
+      await cleanupOrphanedMedia(oldVolunteer.imageUrl);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true, volunteer: updated });
   } catch (err) {
     console.error('Update volunteer error:', err);
@@ -109,13 +119,20 @@ export async function DELETE(req: Request) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ error: 'ID is required.' }, { status: 400 });
+      return NextResponse.json({ error: 'Volunteer ID is required.' }, { status: 400 });
     }
+
+    const oldVolunteer = await db.volunteer.findUnique({ where: { id } });
 
     await db.volunteer.delete({
       where: { id },
     });
 
+    if (oldVolunteer?.imageUrl) {
+      await cleanupOrphanedMedia(oldVolunteer.imageUrl);
+    }
+
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Delete volunteer error:', err);
