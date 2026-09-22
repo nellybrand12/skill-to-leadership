@@ -1,8 +1,22 @@
 import React from 'react';
 import { Badge } from '@/components/ui/Badge';
 
-export const metadata = {
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
   title: 'Terms of Service | Skill to Leadership',
+  description:
+    'Terms of service and code of conduct for Skill to Leadership fellowships, competitions, and digital platforms.',
+  alternates: {
+    canonical: '/terms',
+  },
+  openGraph: {
+    title: 'Terms of Service | Skill to Leadership',
+    description: 'Terms of service and participation guidelines for Skill to Leadership.',
+    url: '/terms',
+    siteName: 'Skill to Leadership',
+    type: 'website',
+  },
 };
 
 export default function TermsPage() {

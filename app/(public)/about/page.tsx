@@ -24,13 +24,41 @@ import {
 } from 'lucide-react';
 import { getSiteSettings } from '@/lib/settings';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'About Us | Turning Skills into Leadership',
   description:
     'Skill to Leadership is a youth-focused non-profit program in Cameroon empowering young people with practical craft skills, mentorship, confidence, and leadership opportunities.',
+  alternates: {
+    canonical: '/about',
+  },
+  openGraph: {
+    title: 'About Us | Turning Skills into Leadership',
+    description:
+      'Skill to Leadership empowers Cameroonian youth with vocational training, mentorship, and leadership opportunities.',
+    url: '/about',
+    siteName: 'Skill to Leadership',
+    images: [
+      {
+        url: '/Skill-to-leadership-logo.jpg',
+        width: 800,
+        height: 800,
+        alt: 'About Skill to Leadership',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Us | Turning Skills into Leadership',
+    description:
+      'Skill to Leadership empowers Cameroonian youth with vocational training, mentorship, and leadership opportunities.',
+    images: ['/Skill-to-leadership-logo.jpg'],
+  },
 };
 
 export default async function AboutPage() {

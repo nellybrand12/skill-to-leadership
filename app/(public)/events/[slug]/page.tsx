@@ -50,11 +50,41 @@ export async function generateMetadata({ params }: EventDetailPageProps) {
 
   const staticEvent = pastEventsData.find((e) => e.slug === params.slug);
   const title = dbEvent?.title || staticEvent?.title || 'Event Details';
-  const description = dbEvent?.description || staticEvent?.description || 'Skill to Leadership Event';
+  const rawDesc =
+    dbEvent?.description ||
+    staticEvent?.description ||
+    'Explore youth empowerment events, pitch competitions, and leadership showcases by Skill to Leadership in Cameroon.';
+  // Clean, concise meta description capped around 160 characters
+  const description = rawDesc.length > 160 ? `${rawDesc.slice(0, 157).trim()}…` : rawDesc;
+  const coverImage = dbEvent?.coverImage || staticEvent?.coverImage || '/Skill-to-leadership-logo.jpg';
 
   return {
     title: `${title} | Skill to Leadership`,
     description,
+    alternates: {
+      canonical: `/events/${params.slug}`,
+    },
+    openGraph: {
+      title: `${title} | Skill to Leadership`,
+      description,
+      url: `/events/${params.slug}`,
+      siteName: 'Skill to Leadership',
+      images: [
+        {
+          url: coverImage,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | Skill to Leadership`,
+      description,
+      images: [coverImage],
+    },
   };
 }
 
@@ -414,7 +444,7 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                       <div className="relative h-72 sm:h-96 w-full rounded-2xl overflow-hidden border border-gold/40 bg-ink-950 shadow-soft">
                         <Image
                           src={dbEvent.winnerPhoto}
-                          alt={dbEvent.winnerName}
+                          alt={`${dbEvent.winnerName} - Competition Winner`}
                           fill
                           className="object-cover object-top"
                         />
@@ -477,7 +507,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                     <div>
                       {p.photoUrl && (
                         <div className="relative h-56 sm:h-60 w-full bg-ink-950 overflow-hidden">
-                          <Image src={p.photoUrl} alt={p.name} fill className="object-cover object-top" />
+                          <Image
+                            src={p.photoUrl}
+                            alt={`${p.name} - ${p.businessName || 'Entrepreneur Spotlight'}`}
+                            fill
+                            className="object-cover object-top"
+                          />
                           <div className="absolute top-3 left-3">
                             <span className="bg-white/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold rounded-full text-ink-900 uppercase">
                               {p.category}
@@ -544,7 +579,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
                   <div className="bg-white rounded-card-lg overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 border border-neutral-border flex flex-col h-full">
                     {p.photoUrl && (
                       <div className="relative h-56 sm:h-60 w-full bg-ink-950 overflow-hidden">
-                        <Image src={p.photoUrl} alt={p.name} fill className="object-cover object-top" />
+                        <Image
+                          src={p.photoUrl}
+                          alt={`${p.name} - ${p.fellowRole || 'Skill to Leadership Fellow'}`}
+                          fill
+                          className="object-cover object-top"
+                        />
                         <div className="absolute top-3 left-3">
                           <span className="liquid-glass-badge px-3 py-1 text-[10px] font-bold rounded-full text-indigo-900 uppercase tracking-wider">
                             Fellow

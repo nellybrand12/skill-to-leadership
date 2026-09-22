@@ -34,7 +34,13 @@ const ADMIN_NAV = [
   { name: 'Site Settings', href: '/admin/settings', icon: Settings },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  onNavigate?: () => void;
+  onClose?: () => void;
+  className?: string;
+}
+
+export function AdminSidebar({ onNavigate, onClose, className }: AdminSidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -45,13 +51,30 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-primary-navy text-white flex flex-col shrink-0 min-h-screen border-r border-primary-navy-light">
+    <aside
+      className={cn(
+        'w-64 bg-primary-navy text-white flex flex-col shrink-0 h-screen border-r border-primary-navy-light select-none',
+        className
+      )}
+    >
       {/* Brand Header */}
-      <div className="p-5 border-b border-white/10">
-        <Logo variant="light" size="sm" />
-        <div className="mt-2 text-[10px] uppercase font-bold tracking-widest text-gold">
-          Administration Console
+      <div className="p-5 border-b border-white/10 flex items-start justify-between">
+        <div>
+          <Logo variant="light" size="sm" />
+          <div className="mt-2 text-[10px] uppercase font-bold tracking-widest text-gold">
+            Administration Console
+          </div>
         </div>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="lg:hidden p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <span className="text-xl leading-none">&times;</span>
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -63,6 +86,7 @@ export function AdminSidebar() {
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => onNavigate?.()}
               className={cn(
                 'flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-all',
                 isActive

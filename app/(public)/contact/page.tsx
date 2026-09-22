@@ -5,12 +5,41 @@ import { getSiteSettings } from '@/lib/settings';
 import { WhatsAppIcon } from '@/components/ui/icons/WhatsAppIcon';
 import { Mail, MapPin, Clock, ExternalLink } from 'lucide-react';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Contact Us | Skill to Leadership',
-  description: 'Get in touch with the Skill to Leadership team in Yaoundé, Cameroon via WhatsApp or Email for program inquiries, partnerships, or donations.',
+  description:
+    'Get in touch with the Skill to Leadership team in Yaoundé, Cameroon via WhatsApp or Email for program inquiries, partnerships, or donations.',
+  alternates: {
+    canonical: '/contact',
+  },
+  openGraph: {
+    title: 'Contact Us | Skill to Leadership',
+    description:
+      'Get in touch with the Skill to Leadership team in Yaoundé, Cameroon for programs, partnerships, or support.',
+    url: '/contact',
+    siteName: 'Skill to Leadership',
+    images: [
+      {
+        url: '/Skill-to-leadership-logo.jpg',
+        width: 800,
+        height: 800,
+        alt: 'Contact Skill to Leadership',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Contact Us | Skill to Leadership',
+    description:
+      'Get in touch with the Skill to Leadership team in Yaoundé, Cameroon for programs, partnerships, or support.',
+    images: ['/Skill-to-leadership-logo.jpg'],
+  },
 };
 
 export default async function ContactPage() {

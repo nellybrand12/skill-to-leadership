@@ -1,8 +1,22 @@
 import React from 'react';
 import { Badge } from '@/components/ui/Badge';
 
-export const metadata = {
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
   title: 'Privacy Policy | Skill to Leadership',
+  description:
+    'Learn how Skill to Leadership collects, uses, and safeguards personal information across program applications, events, and website interactions.',
+  alternates: {
+    canonical: '/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy | Skill to Leadership',
+    description: 'Privacy policy and data protection practices for Skill to Leadership.',
+    url: '/privacy',
+    siteName: 'Skill to Leadership',
+    type: 'website',
+  },
 };
 
 export default function PrivacyPage() {

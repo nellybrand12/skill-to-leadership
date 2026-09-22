@@ -4,12 +4,41 @@ import { VolunteerForm } from '@/components/forms/VolunteerForm';
 import { HeartHandshake, Sparkles, Building2, Users, Briefcase } from 'lucide-react';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Partner, Mentor & Join Us | Skill to Leadership',
-  description: 'Join Skill to Leadership as an institutional partner, fellowship mentor, technical workshop instructor, or operational staff member.',
+  description:
+    'Join Skill to Leadership as an institutional partner, fellowship mentor, technical workshop instructor, or operational staff member in Cameroon.',
+  alternates: {
+    canonical: '/volunteer',
+  },
+  openGraph: {
+    title: 'Partner, Mentor & Join Us | Skill to Leadership',
+    description:
+      'Join Skill to Leadership as an institutional partner, fellowship mentor, technical workshop instructor, or volunteer.',
+    url: '/volunteer',
+    siteName: 'Skill to Leadership',
+    images: [
+      {
+        url: '/Skill-to-leadership-logo.jpg',
+        width: 800,
+        height: 800,
+        alt: 'Join Skill to Leadership',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Partner, Mentor & Join Us | Skill to Leadership',
+    description:
+      'Join Skill to Leadership as an institutional partner, fellowship mentor, technical workshop instructor, or volunteer.',
+    images: ['/Skill-to-leadership-logo.jpg'],
+  },
 };
 
 export default function VolunteerPage() {

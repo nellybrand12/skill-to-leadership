@@ -6,12 +6,41 @@ import { CohortGallerySection } from '@/components/sections/CohortGallerySection
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { ShieldCheck } from 'lucide-react';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Our Impact & Cohort 1 Winners | Skill to Leadership',
-  description: 'Celebrating the winners of Cohort 1 and the tangible impact created through Skill to Leadership in Cameroon.',
+  description:
+    'Celebrating the winners of Cohort 1 and the tangible impact created through Skill to Leadership in Cameroon.',
+  alternates: {
+    canonical: '/impact',
+  },
+  openGraph: {
+    title: 'Our Impact & Cohort 1 Winners | Skill to Leadership',
+    description:
+      'Celebrating the winners of Cohort 1 and the tangible impact created through Skill to Leadership in Cameroon.',
+    url: '/impact',
+    siteName: 'Skill to Leadership',
+    images: [
+      {
+        url: '/Skill-to-leadership-logo.jpg',
+        width: 800,
+        height: 800,
+        alt: 'Skill to Leadership Impact',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Our Impact & Cohort 1 Winners | Skill to Leadership',
+    description:
+      'Celebrating the winners of Cohort 1 and the tangible impact created through Skill to Leadership in Cameroon.',
+    images: ['/Skill-to-leadership-logo.jpg'],
+  },
 };
 
 export default function ImpactPage() {

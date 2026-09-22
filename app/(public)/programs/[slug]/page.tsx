@@ -42,10 +42,35 @@ export async function generateMetadata({ params }: ProgramDetailPageProps) {
   const title = dbSkill?.name || program?.name || 'Discipline Track';
   const desc =
     dbSkill?.shortDesc || program?.shortDesc || 'Practical craft track at Skill to Leadership';
+  const coverImage = dbSkill?.coverImage || program?.coverImage || '/images/Braiding.jpg';
 
   return {
     title: `${title} | Skill to Leadership`,
     description: desc,
+    alternates: {
+      canonical: `/programs/${params.slug}`,
+    },
+    openGraph: {
+      title: `${title} | Skill to Leadership`,
+      description: desc,
+      url: `/programs/${params.slug}`,
+      siteName: 'Skill to Leadership',
+      images: [
+        {
+          url: coverImage,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${title} | Skill to Leadership`,
+      description: desc,
+      images: [coverImage],
+    },
   };
 }
 

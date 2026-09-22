@@ -9,10 +9,43 @@ import { CohortGallerySection } from '@/components/sections/CohortGallerySection
 import { ParticipantStories } from '@/components/sections/ParticipantStories';
 import { CohortTwoBanner } from '@/components/sections/CohortTwoBanner';
 
+import type { Metadata } from 'next';
 import { getSiteSettings } from '@/lib/settings';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Skill to Leadership | Turning Skills Into Leadership',
+  description:
+    'An experiential youth development non-profit empowering young changemakers in Cameroon with hands-on craft mastery, mentorship, starter toolkits, and seed prize capital.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Skill to Leadership | Turning Skills Into Leadership',
+    description:
+      'Empowering young changemakers in Cameroon with hands-on craft mastery, mentorship, starter toolkits, and seed prize capital.',
+    url: '/',
+    siteName: 'Skill to Leadership',
+    images: [
+      {
+        url: '/Skill-to-leadership-logo.jpg',
+        width: 800,
+        height: 800,
+        alt: 'Skill to Leadership — Empowering Cameroonian Youth',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Skill to Leadership | Turning Skills Into Leadership',
+    description:
+      'Empowering young changemakers in Cameroon with hands-on craft mastery, mentorship, starter toolkits, and seed prize capital.',
+    images: ['/Skill-to-leadership-logo.jpg'],
+  },
+};
 
 export default async function HomePage() {
   const settings = await getSiteSettings();

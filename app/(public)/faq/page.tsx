@@ -3,12 +3,41 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { HelpCircle, Sparkles, MessageCircle, Heart, ArrowRight } from 'lucide-react';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'FAQ | Frequently Asked Questions | Skill to Leadership',
-  description: 'Find answers to common questions about Skill to Leadership fellowships, Cohort 2, starter toolkits, and how to support.',
+  description:
+    'Find answers to common questions about Skill to Leadership fellowships, Cohort 2, starter toolkits, and how to support.',
+  alternates: {
+    canonical: '/faq',
+  },
+  openGraph: {
+    title: 'FAQ | Frequently Asked Questions | Skill to Leadership',
+    description:
+      'Answers to common questions about fellowships, Cohort 2, toolkits, and how to support Skill to Leadership.',
+    url: '/faq',
+    siteName: 'Skill to Leadership',
+    images: [
+      {
+        url: '/Skill-to-leadership-logo.jpg',
+        width: 800,
+        height: 800,
+        alt: 'Skill to Leadership FAQ',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FAQ | Frequently Asked Questions | Skill to Leadership',
+    description:
+      'Answers to common questions about fellowships, Cohort 2, toolkits, and how to support Skill to Leadership.',
+    images: ['/Skill-to-leadership-logo.jpg'],
+  },
 };
 
 export default function FAQPage() {

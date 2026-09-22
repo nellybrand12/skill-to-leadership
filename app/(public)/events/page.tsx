@@ -9,12 +9,41 @@ import { getEventLifecycleStatus } from '@/lib/events';
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { Calendar, Clock, MapPin, Sparkles, Trophy, Users, BookOpen, ExternalLink, ShieldAlert } from 'lucide-react';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Events & Initiatives | Skill to Leadership',
-  description: 'Explore the Convergence milestones, End of Program Gala, and active Entrepreneurs Spotlight organized by Skill to Leadership in Cameroon.',
+  description:
+    'Explore the Convergence milestones, End of Program Gala, and active Entrepreneurs Spotlight organized by Skill to Leadership in Cameroon.',
+  alternates: {
+    canonical: '/events',
+  },
+  openGraph: {
+    title: 'Events & Initiatives | Skill to Leadership',
+    description:
+      'Explore Convergence milestones, youth pitch competitions, and graduation galas in Cameroon.',
+    url: '/events',
+    siteName: 'Skill to Leadership',
+    images: [
+      {
+        url: '/images/Events/Event1.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Skill to Leadership Events & Initiatives',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Events & Initiatives | Skill to Leadership',
+    description:
+      'Explore Convergence milestones, youth pitch competitions, and graduation galas in Cameroon.',
+    images: ['/images/Events/Event1.jpg'],
+  },
 };
 
 export default async function EventsPage() {

@@ -7,12 +7,41 @@ import { CohortGallerySection } from '@/components/sections/CohortGallerySection
 import { ScrollReveal } from '@/components/ui/ScrollReveal';
 import { Trophy, CheckCircle2, Users, ArrowRight, Sparkles } from 'lucide-react';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Cohorts | Skill to Leadership',
-  description: 'Explore Skill to Leadership cohort milestones, Cohort 1 achievements, and the upcoming Cohort 2 expansion.',
+  description:
+    'Explore Skill to Leadership cohort milestones, Cohort 1 achievements, and the upcoming Cohort 2 expansion across Cameroon.',
+  alternates: {
+    canonical: '/cohorts',
+  },
+  openGraph: {
+    title: 'Cohorts | Skill to Leadership',
+    description:
+      'Explore Skill to Leadership cohort milestones, Cohort 1 achievements, and the upcoming Cohort 2 expansion.',
+    url: '/cohorts',
+    siteName: 'Skill to Leadership',
+    images: [
+      {
+        url: '/Skill-to-leadership-logo.jpg',
+        width: 800,
+        height: 800,
+        alt: 'Skill to Leadership Cohorts',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Cohorts | Skill to Leadership',
+    description:
+      'Explore Skill to Leadership cohort milestones, Cohort 1 achievements, and the upcoming Cohort 2 expansion.',
+    images: ['/Skill-to-leadership-logo.jpg'],
+  },
 };
 
 export default function CohortsPage() {

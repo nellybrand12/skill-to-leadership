@@ -15,12 +15,40 @@ import {
   Play,
 } from 'lucide-react';
 
+import type { Metadata } from 'next';
+
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Discipline Tracks & Programs | Skill to Leadership',
   description:
     'Explore the core practical disciplines taught in Skill to Leadership: Braiding, Ceramic Sculpting, Content Creation, Nail Artistry, and newly launched tracks in Cameroon.',
+  alternates: {
+    canonical: '/programs',
+  },
+  openGraph: {
+    title: 'Discipline Tracks & Programs | Skill to Leadership',
+    description:
+      'Explore core vocational and entrepreneurship craft tracks offered by Skill to Leadership in Cameroon.',
+    url: '/programs',
+    siteName: 'Skill to Leadership',
+    images: [
+      {
+        url: '/images/Braiding.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Skill to Leadership Vocational Tracks',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Discipline Tracks & Programs | Skill to Leadership',
+    description:
+      'Explore core vocational and entrepreneurship craft tracks offered by Skill to Leadership in Cameroon.',
+    images: ['/images/Braiding.jpg'],
+  },
 };
 
 export default async function ProgramsPage() {
