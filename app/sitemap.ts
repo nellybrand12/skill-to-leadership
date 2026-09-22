@@ -4,7 +4,7 @@ import { pastEventsData } from '@/data/events';
 import { programsData } from '@/data/programs';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://skilltoleadership.org').replace(/\/$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://skilltoleadership.vercel.app').replace(/\/$/, '');
 
   // 1. Static Public Pages
   const staticRoutes: { path: string; changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency']; priority: number }[] = [
