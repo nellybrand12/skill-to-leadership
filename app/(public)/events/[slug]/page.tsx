@@ -452,76 +452,124 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         </section>
       )}
 
-      {/* 4. DYNAMIC MEET THE ENTREPRENEURS / SELECTED PARTICIPANTS (Visible ONLY when applications are CLOSED) */}
-      {!isApplicationOpen && participants.length > 0 && (
-        <section id="competition-archive" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10 scroll-mt-20">
-          <ScrollReveal>
-            <div className="space-y-2 text-center sm:text-left">
-              <div className="text-xs font-black uppercase tracking-widest text-gold-700">
-                Spotlight Archive & Participant Stories
+      {/* 4a. ENTREPRENEUR ARCHIVE — visible only when applications are closed */}
+      {(() => {
+        const entrepreneurs = participants.filter((p: any) => p.category !== 'FELLOW');
+        return !isApplicationOpen && entrepreneurs.length > 0 ? (
+          <section id="competition-archive" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10 scroll-mt-20">
+            <ScrollReveal>
+              <div className="space-y-2 text-center sm:text-left">
+                <div className="text-xs font-black uppercase tracking-widest text-gold-700">
+                  Spotlight Archive &amp; Participant Stories
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-black text-ink-900 tracking-tight font-display uppercase">
+                  Meet the Entrepreneurs
+                </h2>
+                <p className="text-xs sm:text-base text-neutral-muted font-light max-w-2xl">
+                  Discover the ambitious young founders, artisans, and innovators selected for this initiative.
+                </p>
               </div>
-              <h2 className="text-2xl sm:text-4xl font-black text-ink-900 tracking-tight font-display uppercase">
-                Meet the Entrepreneurs
-              </h2>
-              <p className="text-xs sm:text-base text-neutral-muted font-light max-w-2xl">
-                Discover the ambitious young founders, artisans, and innovators selected for this initiative.
-              </p>
+            </ScrollReveal>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {entrepreneurs.map((p: any, idx: number) => (
+                <ScrollReveal key={p.id} delay={idx * 60}>
+                  <div className="bg-white rounded-card-lg overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 border border-neutral-border flex flex-col justify-between h-full">
+                    <div>
+                      {p.photoUrl && (
+                        <div className="relative h-56 sm:h-60 w-full bg-ink-950 overflow-hidden">
+                          <Image src={p.photoUrl} alt={p.name} fill className="object-cover object-top" />
+                          <div className="absolute top-3 left-3">
+                            <span className="bg-white/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold rounded-full text-ink-900 uppercase">
+                              {p.category}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="p-5 sm:p-6 space-y-3">
+                        <div>
+                          <h3 className="text-lg sm:text-xl font-bold text-ink-900 font-display">{p.name}</h3>
+                          <p className="text-xs font-bold text-gold-700">{p.businessName}</p>
+                        </div>
+                        <p className="text-xs sm:text-sm text-neutral-muted leading-relaxed font-light whitespace-pre-wrap">
+                          {p.story}
+                        </p>
+                        {p.quote && (
+                          <div className="p-3 bg-gold-50 rounded-xl text-xs text-ink-900 italic border-l-2 border-gold-500">
+                            &quot;{p.quote}&quot;
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {p.website && (
+                      <div className="p-4 border-t border-neutral-border bg-cream-surface/40">
+                        <a href={p.website} target="_blank" rel="noopener noreferrer"
+                          className="text-xs font-bold text-primary-navy hover:text-gold-700 flex items-center gap-1.5">
+                          <span>Visit Business Profile</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </ScrollReveal>
+              ))}
             </div>
-          </ScrollReveal>
+          </section>
+        ) : null;
+      })()}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {participants.map((p: any, idx: number) => (
-              <ScrollReveal key={p.id} delay={idx * 60}>
-                <div className="bg-white rounded-card-lg overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 border border-neutral-border flex flex-col justify-between h-full">
-                  <div>
+      {/* 4b. FELLOWS SPOTLIGHT
+           Only published fellows appear here — fellows default to published:false so
+           the admin explicitly controls what goes live. The DB query already filters
+           WHERE published = true, so no extra guard is needed in the render. */}
+      {(() => {
+        const fellows = participants.filter((p: any) => p.category === 'FELLOW');
+        return fellows.length > 0 ? (
+          <section id="fellows-spotlight" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10 scroll-mt-20">
+            <ScrollReveal>
+              <div className="space-y-2 text-center sm:text-left">
+                <div className="text-xs font-black uppercase tracking-widest text-indigo-600">
+                  {isApplicationOpen ? 'Featured Fellows · Active Spotlight' : 'Spotlight Fellows'}
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-black text-ink-900 tracking-tight font-display uppercase">
+                  Fellows
+                </h2>
+                <p className="text-xs sm:text-base text-neutral-muted font-light max-w-2xl">
+                  Talented young leaders selected for this cohort — each bringing a distinct skill and story.
+                </p>
+              </div>
+            </ScrollReveal>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {fellows.map((p: any, idx: number) => (
+                <ScrollReveal key={p.id} delay={idx * 60}>
+                  <div className="bg-white rounded-card-lg overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 border border-neutral-border flex flex-col h-full">
                     {p.photoUrl && (
                       <div className="relative h-56 sm:h-60 w-full bg-ink-950 overflow-hidden">
                         <Image src={p.photoUrl} alt={p.name} fill className="object-cover object-top" />
                         <div className="absolute top-3 left-3">
-                          <span className="bg-white/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold rounded-full text-ink-900 uppercase">
-                            {p.category}
+                          <span className="liquid-glass-badge px-3 py-1 text-[10px] font-bold rounded-full text-indigo-900 uppercase tracking-wider">
+                            Fellow
                           </span>
                         </div>
                       </div>
                     )}
-
-                    <div className="p-5 sm:p-6 space-y-3">
+                    <div className="p-5 sm:p-6 space-y-3 flex-1">
                       <div>
                         <h3 className="text-lg sm:text-xl font-bold text-ink-900 font-display">{p.name}</h3>
-                        <p className="text-xs font-bold text-gold-700">{p.businessName}</p>
+                        {p.fellowRole && (
+                          <p className="text-xs font-bold text-indigo-600 mt-0.5">{p.fellowRole}</p>
+                        )}
                       </div>
-
-                      <p className="text-xs sm:text-sm text-neutral-muted leading-relaxed font-light whitespace-pre-wrap">
+                      <p className="text-xs sm:text-sm text-neutral-muted leading-relaxed font-light">
                         {p.story}
                       </p>
-
-                      {p.quote && (
-                        <div className="p-3 bg-gold-50 rounded-xl text-xs text-ink-900 italic border-l-2 border-gold-500">
-                          "{p.quote}"
-                        </div>
-                      )}
                     </div>
                   </div>
-
-                  {p.website && (
-                    <div className="p-4 border-t border-neutral-border bg-cream-surface/40">
-                      <a
-                        href={p.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-bold text-primary-navy hover:text-gold-700 flex items-center gap-1.5"
-                      >
-                        <span>Visit Business Profile</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </section>
-      )}
+                </ScrollReveal>
+              ))}
+            </div>
+          </section>
+        ) : null;
+      })()}
 
       {/* 5. AGENDA & TIMELINE SECTIONS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">

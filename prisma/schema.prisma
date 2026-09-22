@@ -141,8 +141,14 @@ model EventParticipant {
   event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   name         String
   photoUrl     String?
-  businessName String
+  businessName String   @default("")
+  // Discriminator: "ENTREPRENEUR" = Story/participant flow; "FELLOW" = batch-fellow flow.
+  // The string "FELLOW" is reserved — the Story admin flow blocks saving it as a custom value.
+  // Any other custom string is valid for entrepreneurs only.
   category     String   @default("ENTREPRENEUR")
+  // Fellows-only: what the fellow does / their role or focus area.
+  // Null for entrepreneur entries; required for FELLOW entries.
+  fellowRole   String?
   bio          String?
   story        String
   quote        String?

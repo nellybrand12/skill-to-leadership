@@ -5,26 +5,47 @@ import Image from 'next/image';
 import { formatDate } from '@/lib/utils';
 import { getEventLifecycleStatus, formatEventDateTime } from '@/lib/events';
 import { Button } from '@/components/ui/Button';
-import { 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  CheckCircle2, 
-  AlertCircle, 
-  Upload, 
-  Eye, 
-  EyeOff, 
-  X, 
-  Calendar, 
-  Clock, 
-  Trophy, 
-  Users, 
-  Film, 
+import {
+  Plus,
+  Edit3,
+  Trash2,
+  CheckCircle2,
+  AlertCircle,
+  Upload,
+  Eye,
+  EyeOff,
+  X,
+  Calendar,
+  Clock,
+  Trophy,
+  Users,
+  Film,
   ExternalLink,
   Sparkles,
   Award,
-  Video
+  Video,
+  UserPlus,
+  Globe,
+  BookUser,
+  ToggleLeft,
+  ToggleRight,
+  ArrowRight,
 } from 'lucide-react';
+
+// Reserved discriminator — must match the API constant exactly.
+const FELLOW_CATEGORY = 'FELLOW' as const;
+
+// Shape of one fellow slot in the batch-add form.
+interface FellowSlot {
+  name: string;
+  fellowRole: string;
+  story: string;
+  photoUrl: string;
+  // Per-field client-side validation errors (keyed by field name)
+  _errors: Partial<Record<'name' | 'fellowRole' | 'story' | 'photoUrl', string>>;
+  // True while this slot's photo is uploading
+  _uploading: boolean;
+}
 
 export function EventsAdminClient({ initialEvents }: { initialEvents: any[] }) {
   const [events, setEvents] = useState<any[]>(initialEvents);
@@ -88,6 +109,28 @@ export function EventsAdminClient({ initialEvents }: { initialEvents: any[] }) {
     caption: '',
     published: true,
   });
+
+  // ── Fellows state ──────────────────────────────────────────────────────────
+  // The event whose fellows panel is currently open
+  const [selectedEventForFellows, setSelectedEventForFellows] = useState<any | null>(null);
+  // null = show count-selector step; a number = show batch-slot-entry step
+  const [fellowCountStep, setFellowCountStep] = useState<number | null>(null);
+  const [fellowSlots, setFellowSlots] = useState<FellowSlot[]>([]);
+  // Per-slot API errors returned from the server after a failed batch save
+  const [fellowSaveErrors, setFellowSaveErrors] = useState<
+    { index: number; field: string; message: string }[]
+  >([]);
+  // Fellow being edited individually
+  const [editingFellow, setEditingFellow] = useState<any | null>(null);
+  const [fellowEditForm, setFellowEditForm] = useState({
+    name: '',
+    fellowRole: '',
+    story: '',
+    photoUrl: '',
+    displayOrder: 0,
+    published: false,
+  });
+  // ──────────────────────────────────────────────────────────────────────────
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
@@ -456,6 +499,234 @@ export function EventsAdminClient({ initialEvents }: { initialEvents: any[] }) {
     }
   };
 
+
+  // ── Fellows handlers ────────────────────────────────────────────────────────
+
+  const validateSlot = (slot: FellowSlot): FellowSlot['_errors'] => {
+    const errors: FellowSlot['_errors'] = {};
+    if (!slot.name.trim()) errors.name = 'Name is required.';
+    if (!slot.fellowRole.trim()) errors.fellowRole = 'Role / focus area is required.';
+    if (!slot.story.trim()) errors.story = 'Bio is required.';
+    if (!slot.photoUrl.trim()) errors.photoUrl = 'Photo is required.';
+    return errors;
+  };
+
+  const generateFellowSlots = (count: number) => {
+    setFellowSlots(
+      Array.from({ length: count }, () => ({
+        name: '', fellowRole: '', story: '', photoUrl: '', _errors: {}, _uploading: false,
+      }))
+    );
+    setFellowCountStep(count);
+    setFellowSaveErrors([]);
+  };
+
+  const updateSlot = (
+    index: number,
+    field: keyof Omit<FellowSlot, '_errors' | '_uploading'>,
+    value: string
+  ) => {
+    setFellowSlots((prev) =>
+      prev.map((slot, i) => {
+        if (i !== index) return slot;
+        const errors = { ...slot._errors };
+        delete errors[field as keyof FellowSlot['_errors']];
+        return { ...slot, [field]: value, _errors: errors };
+      })
+    );
+  };
+
+  const handleFellowPhotoUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    slotIndex: number
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFellowSlots((prev) =>
+      prev.map((s, i) => (i === slotIndex ? { ...s, _uploading: true } : s))
+    );
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'fellows');
+    try {
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok) {
+        setFellowSlots((prev) =>
+          prev.map((s, i) => {
+            if (i !== slotIndex) return s;
+            const errors = { ...s._errors };
+            delete errors.photoUrl;
+            return { ...s, photoUrl: data.url, _errors: errors, _uploading: false };
+          })
+        );
+      } else {
+        setFellowSlots((prev) =>
+          prev.map((s, i) =>
+            i !== slotIndex ? s
+              : { ...s, _uploading: false, _errors: { ...s._errors, photoUrl: data.error || 'Upload failed.' } }
+          )
+        );
+      }
+    } catch {
+      setFellowSlots((prev) =>
+        prev.map((s, i) =>
+          i !== slotIndex ? s
+            : { ...s, _uploading: false, _errors: { ...s._errors, photoUrl: 'Network error uploading photo.' } }
+        )
+      );
+    }
+  };
+
+  const handleSaveFellowsBatch = async () => {
+    if (!selectedEventForFellows) return;
+    const validated = fellowSlots.map((slot) => ({ ...slot, _errors: validateSlot(slot) }));
+    setFellowSlots(validated);
+    if (validated.some((s) => Object.keys(s._errors).length > 0)) return;
+    if (validated.some((s) => s._uploading)) {
+      showNotification('error', 'Please wait for all photo uploads to complete.');
+      return;
+    }
+    setIsSubmitting(true);
+    setFellowSaveErrors([]);
+    try {
+      const res = await fetch('/api/admin/events/participants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: selectedEventForFellows.id,
+          fellows: validated.map(({ name, fellowRole, story, photoUrl }) => ({ name, fellowRole, story, photoUrl })),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const newFellows: any[] = data.fellows;
+        const merge = (list: any[]) => [...(list || []), ...newFellows];
+        setEvents((prev) =>
+          prev.map((ev) =>
+            ev.id === selectedEventForFellows.id ? { ...ev, eventParticipants: merge(ev.eventParticipants) } : ev
+          )
+        );
+        setSelectedEventForFellows((prev: any) => ({
+          ...prev, eventParticipants: merge(prev.eventParticipants),
+        }));
+        setFellowCountStep(null);
+        setFellowSlots([]);
+        showNotification('success', `${newFellows.length} fellow(s) saved and published to the public page.`);
+      } else if (data.errors) {
+        const serverErrors: { index: number; field: string; message: string }[] = data.errors;
+        setFellowSaveErrors(serverErrors);
+        setFellowSlots((prev) =>
+          prev.map((slot, i) => {
+            const slotErrs = serverErrors.filter((e) => e.index === i);
+            if (!slotErrs.length) return slot;
+            const errors: FellowSlot['_errors'] = { ...slot._errors };
+            slotErrs.forEach((e) => { (errors as any)[e.field] = e.message; });
+            return { ...slot, _errors: errors };
+          })
+        );
+        showNotification('error', `${serverErrors.length} validation error(s) — see highlighted slots.`);
+      } else {
+        showNotification('error', data.error || 'Failed to save fellows.');
+      }
+    } catch {
+      showNotification('error', 'Network error saving fellows.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePublishToggleFellow = async (fellow: any) => {
+    const newPublished = !fellow.published;
+    try {
+      const res = await fetch('/api/admin/events/participants', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: fellow.id, published: newPublished }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const updated = data.participant;
+        const patch = (list: any[]) => (list || []).map((p: any) => (p.id === fellow.id ? updated : p));
+        setEvents((prev) => prev.map((ev) => ({ ...ev, eventParticipants: patch(ev.eventParticipants) })));
+        if (selectedEventForFellows) {
+          setSelectedEventForFellows((prev: any) => ({ ...prev, eventParticipants: patch(prev.eventParticipants) }));
+        }
+        showNotification('success', newPublished ? 'Fellow is now visible on the public page.' : 'Fellow is now hidden from the public page.');
+      } else {
+        showNotification('error', data.error || 'Failed to update fellow.');
+      }
+    } catch {
+      showNotification('error', 'Network error.');
+    }
+  };
+
+  const openEditFellow = (fellow: any) => {
+    setEditingFellow(fellow);
+    setFellowEditForm({
+      name: fellow.name || '',
+      fellowRole: fellow.fellowRole || '',
+      story: fellow.story || '',
+      photoUrl: fellow.photoUrl || '',
+      displayOrder: fellow.displayOrder ?? 0,
+      published: Boolean(fellow.published),
+    });
+  };
+
+  const handleSaveEditFellow = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFellow) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/events/participants', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingFellow.id, ...fellowEditForm }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const updated = data.participant;
+        const patch = (list: any[]) => (list || []).map((p: any) => (p.id === editingFellow.id ? updated : p));
+        setEvents((prev) => prev.map((ev) => ({ ...ev, eventParticipants: patch(ev.eventParticipants) })));
+        if (selectedEventForFellows) {
+          setSelectedEventForFellows((prev: any) => ({ ...prev, eventParticipants: patch(prev.eventParticipants) }));
+        }
+        setEditingFellow(null);
+        showNotification('success', 'Fellow updated.');
+      } else {
+        showNotification('error', data.error || 'Failed to update fellow.');
+      }
+    } catch {
+      showNotification('error', 'Network error.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteFellow = async (fellowId: string) => {
+    if (!confirm('Remove this fellow? Their photo will also be deleted.')) return;
+    try {
+      const res = await fetch(`/api/admin/events/participants?id=${fellowId}`, { method: 'DELETE' });
+      if (res.ok) {
+        const filter = (list: any[]) => (list || []).filter((p: any) => p.id !== fellowId);
+        setEvents((prev) => prev.map((ev) => ({ ...ev, eventParticipants: filter(ev.eventParticipants) })));
+        if (selectedEventForFellows) {
+          setSelectedEventForFellows((prev: any) => ({ ...prev, eventParticipants: filter(prev.eventParticipants) }));
+        }
+        showNotification('success', 'Fellow removed.');
+      }
+    } catch {
+      showNotification('error', 'Network error.');
+    }
+  };
+
+  const allSlotsValid =
+    fellowSlots.length > 0 &&
+    fellowSlots.every(
+      (s) => !Object.keys(s._errors).length && s.name.trim() && s.fellowRole.trim() && s.story.trim() && s.photoUrl.trim()
+    ) &&
+    !fellowSlots.some((s) => s._uploading);
+
   return (
     <div className="space-y-6">
       {/* Notifications */}
@@ -599,14 +870,29 @@ export function EventsAdminClient({ initialEvents }: { initialEvents: any[] }) {
                       )}
                     </button>
 
-                    <div className="grid grid-cols-3 gap-1.5 text-[10px]">
+                    <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                      {/* Stories — entrepreneur participants only */}
                       <button
                         onClick={() => setSelectedEventForParticipants(ev)}
                         className="p-1.5 rounded-lg bg-white border border-neutral-border font-bold text-primary-navy hover:bg-gold-light/40 flex items-center justify-center gap-1"
-                        title="Manage Participants & Stories"
+                        title="Manage Entrepreneur Participants & Stories"
                       >
                         <Users className="w-3 h-3 text-gold-700" />
-                        <span>Story ({ev.eventParticipants?.length || 0})</span>
+                        <span>Stories ({(ev.eventParticipants || []).filter((p: any) => p.category !== FELLOW_CATEGORY).length})</span>
+                      </button>
+
+                      {/* Fellows — batch-add dedicated flow */}
+                      <button
+                        onClick={() => { setSelectedEventForFellows(ev); setFellowCountStep(null); setFellowSlots([]); }}
+                        className={`p-1.5 rounded-lg border font-bold flex items-center justify-center gap-1 ${
+                          (ev.eventParticipants || []).some((p: any) => p.category === FELLOW_CATEGORY)
+                            ? 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
+                            : 'bg-white border-neutral-border text-primary-navy hover:bg-neutral-surface'
+                        }`}
+                        title="Add & manage Fellows"
+                      >
+                        <BookUser className="w-3 h-3 text-indigo-600" />
+                        <span>Fellows ({(ev.eventParticipants || []).filter((p: any) => p.category === FELLOW_CATEGORY).length})</span>
                       </button>
 
                       <button
@@ -1063,10 +1349,18 @@ export function EventsAdminClient({ initialEvents }: { initialEvents: any[] }) {
                     <input
                       type="text"
                       value={participantForm.category}
-                      onChange={(e) => setParticipantForm({ ...participantForm, category: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        // Guard: 'FELLOW' is reserved for the batch Fellows flow
+                        if (val.toUpperCase() === FELLOW_CATEGORY) return;
+                        setParticipantForm({ ...participantForm, category: val });
+                      }}
                       placeholder="e.g. Sustainable Crafts / Tech"
                       className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-border"
                     />
+                    {participantForm.category.toUpperCase() === FELLOW_CATEGORY && (
+                      <p className="text-[10px] text-rose-600 mt-0.5">"FELLOW" is reserved — use the Fellows button to add fellows.</p>
+                    )}
                   </div>
                 </div>
 
@@ -1334,6 +1628,409 @@ export function EventsAdminClient({ initialEvents }: { initialEvents: any[] }) {
           </div>
         </div>
       )}
+
+      {/* ── Modal 5: Fellows Management ─────────────────────────────────────── */}
+      {selectedEventForFellows && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-neutral-border pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <BookUser className="w-5 h-5 text-indigo-600" />
+                  <h3 className="text-lg font-bold text-primary-navy">
+                    Fellows: {selectedEventForFellows.title}
+                  </h3>
+                </div>
+                <p className="text-xs text-neutral-muted mt-0.5">
+                  Fellows are published immediately upon saving and visible on the public page.
+                </p>
+              </div>
+              <button
+                onClick={() => { setSelectedEventForFellows(null); setFellowCountStep(null); setFellowSlots([]); }}
+                className="p-1 rounded-lg hover:bg-neutral-surface"
+              >
+                <X className="w-5 h-5 text-neutral-muted" />
+              </button>
+            </div>
+
+            {/* Existing Fellows List */}
+            {(() => {
+              const existingFellows = (selectedEventForFellows.eventParticipants || []).filter(
+                (p: any) => p.category === FELLOW_CATEGORY
+              );
+              return existingFellows.length > 0 ? (
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-primary-navy uppercase tracking-wider">
+                    Current Fellows ({existingFellows.length})
+                  </span>
+                  {existingFellows.map((fellow: any) => (
+                    <div
+                      key={fellow.id}
+                      className="p-3 bg-neutral-surface/40 rounded-2xl border border-neutral-border flex items-center justify-between gap-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {fellow.photoUrl ? (
+                          <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-primary-navy shrink-0">
+                            <Image src={fellow.photoUrl} alt={fellow.name} fill className="object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0">
+                            {fellow.name?.[0] || '?'}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="font-bold text-primary-navy text-xs">{fellow.name}</div>
+                          <div className="text-[11px] text-indigo-600 font-semibold truncate">{fellow.fellowRole}</div>
+                          <p className="text-[11px] text-neutral-muted line-clamp-1">{fellow.story}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Quick visibility toggle: VISIBLE / HIDDEN */}
+                        <button
+                          onClick={() => handlePublishToggleFellow(fellow)}
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border transition-all ${
+                            fellow.published
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                              : 'bg-neutral-100 text-neutral-600 border-neutral-300 hover:bg-neutral-200'
+                          }`}
+                          title={fellow.published ? 'Visible on public site — click to hide' : 'Hidden from public site — click to show'}
+                        >
+                          {fellow.published ? (
+                            <><Eye className="w-3 h-3 text-emerald-600" /><span>VISIBLE</span></>
+                          ) : (
+                            <><EyeOff className="w-3 h-3 text-neutral-500" /><span>HIDDEN</span></>
+                          )}
+                        </button>
+                        {/* Edit */}
+                        <button
+                          onClick={() => openEditFellow(fellow)}
+                          className="p-1.5 rounded-lg hover:bg-white text-primary-navy border border-neutral-border transition-colors"
+                          title="Edit fellow"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        {/* Delete */}
+                        <button
+                          onClick={() => handleDeleteFellow(fellow.id)}
+                          className="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 border border-neutral-border transition-colors"
+                          title="Remove fellow"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-xs text-neutral-muted bg-neutral-surface/40 rounded-2xl border border-neutral-border/60">
+                  No fellows added yet. Use "Add Fellows" below to batch-add.
+                </div>
+              );
+            })()}
+
+            {/* ── Batch-Add Flow ──────────────────────────────────────── */}
+            {fellowCountStep === null ? (
+              /* Step 1: Count selector */
+              <div className="p-5 bg-indigo-50/60 rounded-2xl border border-indigo-200/80 space-y-4">
+                <div className="flex items-center gap-2 text-xs font-bold text-indigo-900 uppercase tracking-wider">
+                  <UserPlus className="w-4 h-4 text-indigo-600" />
+                  <span>Add Fellows</span>
+                </div>
+                <p className="text-xs text-indigo-800 font-light">
+                  How many fellow slots do you want to add in this batch?
+                </p>
+                <div className="flex items-center gap-3">
+                  <input
+                    id="fellow-count"
+                    type="number"
+                    min={1}
+                    max={20}
+                    defaultValue={1}
+                    className="w-24 px-3 py-2 text-xs font-bold rounded-lg border border-indigo-300 bg-white focus:ring-2 focus:ring-indigo-400"
+                  />
+                  <Button
+                    variant="gold"
+                    size="sm"
+                    onClick={() => {
+                      const input = document.getElementById('fellow-count') as HTMLInputElement;
+                      const n = Math.min(20, Math.max(1, parseInt(input?.value || '1', 10)));
+                      generateFellowSlots(n);
+                    }}
+                    leftIcon={<ArrowRight className="w-3.5 h-3.5 text-primary-navy" />}
+                  >
+                    Generate Slots
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              /* Step 2: Slot entry */
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-primary-navy uppercase tracking-wider">
+                    {fellowCountStep} Fellow Slot{fellowCountStep !== 1 ? 's' : ''}
+                  </span>
+                  <button
+                    onClick={() => { setFellowCountStep(null); setFellowSlots([]); setFellowSaveErrors([]); }}
+                    className="text-xs text-neutral-muted hover:text-primary-navy font-bold"
+                  >
+                    ← Back
+                  </button>
+                </div>
+
+                <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-1">
+                  {fellowSlots.map((slot, i) => (
+                    <div
+                      key={i}
+                      className={`p-4 rounded-2xl border space-y-3 ${
+                        Object.keys(slot._errors).length > 0
+                          ? 'border-rose-300 bg-rose-50/30'
+                          : 'border-neutral-border bg-neutral-surface/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 text-xs font-black text-primary-navy uppercase tracking-wider">
+                        <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-black shrink-0">
+                          {i + 1}
+                        </span>
+                        <span>Fellow {i + 1}</span>
+                        {slot._uploading && <span className="text-[10px] text-indigo-500 normal-case font-medium animate-pulse">Uploading photo…</span>}
+                      </div>
+
+                      {/* Photo */}
+                      <div>
+                        <label className="block text-xs font-bold text-primary-navy mb-1">
+                          Photo <span className="text-rose-600">*</span>
+                        </label>
+                        <div className="flex items-center gap-2">
+                          {slot.photoUrl ? (
+                            <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-primary-navy shrink-0">
+                              <Image src={slot.photoUrl} alt={`Fellow ${i + 1}`} fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-neutral-surface border border-neutral-border flex items-center justify-center shrink-0">
+                              <Upload className="w-4 h-4 text-neutral-muted" />
+                            </div>
+                          )}
+                          <label className={`p-2 rounded-lg border cursor-pointer text-xs font-bold flex items-center gap-1.5 ${
+                            slot._errors.photoUrl ? 'border-rose-300 bg-rose-50 text-rose-700' : 'border-neutral-border bg-white text-primary-navy hover:bg-neutral-surface'
+                          }`}>
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>{slot.photoUrl ? 'Replace' : 'Upload'}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleFellowPhotoUpload(e, i)}
+                            />
+                          </label>
+                          {slot._errors.photoUrl && (
+                            <span className="text-[10px] text-rose-600 font-medium">{slot._errors.photoUrl}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Name */}
+                        <div>
+                          <label className="block text-xs font-bold text-primary-navy mb-1">
+                            Name <span className="text-rose-600">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={slot.name}
+                            onChange={(e) => updateSlot(i, 'name', e.target.value)}
+                            placeholder="e.g. Amina Fowe"
+                            className={`w-full px-3 py-2 text-xs rounded-lg border ${
+                              slot._errors.name ? 'border-rose-300 bg-rose-50' : 'border-neutral-border'
+                            } focus:ring-2 focus:ring-indigo-400`}
+                          />
+                          {slot._errors.name && (
+                            <p className="text-[10px] text-rose-600 mt-0.5">{slot._errors.name}</p>
+                          )}
+                        </div>
+
+                        {/* Role */}
+                        <div>
+                          <label className="block text-xs font-bold text-primary-navy mb-1">
+                            What they do / Role <span className="text-rose-600">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={slot.fellowRole}
+                            onChange={(e) => updateSlot(i, 'fellowRole', e.target.value)}
+                            placeholder="e.g. Product Design Lead"
+                            className={`w-full px-3 py-2 text-xs rounded-lg border ${
+                              slot._errors.fellowRole ? 'border-rose-300 bg-rose-50' : 'border-neutral-border'
+                            } focus:ring-2 focus:ring-indigo-400`}
+                          />
+                          {slot._errors.fellowRole && (
+                            <p className="text-[10px] text-rose-600 mt-0.5">{slot._errors.fellowRole}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Bio */}
+                      <div>
+                        <label className="block text-xs font-bold text-primary-navy mb-1">
+                          Short Bio / Story <span className="text-rose-600">*</span>
+                          <span className="text-[10px] text-neutral-muted font-light ml-1">(2–3 sentences max)</span>
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={slot.story}
+                          onChange={(e) => updateSlot(i, 'story', e.target.value)}
+                          placeholder="A brief snapshot of what this fellow does and why it matters…"
+                          className={`w-full p-2.5 text-xs rounded-lg border ${
+                            slot._errors.story ? 'border-rose-300 bg-rose-50' : 'border-neutral-border'
+                          } focus:ring-2 focus:ring-indigo-400`}
+                        />
+                        {slot._errors.story && (
+                          <p className="text-[10px] text-rose-600 mt-0.5">{slot._errors.story}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  variant="gold"
+                  size="lg"
+                  onClick={handleSaveFellowsBatch}
+                  isLoading={isSubmitting}
+                  className={`w-full justify-center font-bold ${!allSlotsValid ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  // Button disabled state handled by allSlotsValid check inside the handler
+                >
+                  Save All Fellows
+                </Button>
+                {!allSlotsValid && fellowSlots.length > 0 && (
+                  <p className="text-[10px] text-center text-neutral-muted">
+                    Fill all required fields and upload photos before saving.
+                  </p>
+                )}
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal 6: Edit Individual Fellow ─────────────────────────────────── */}
+      {editingFellow && (
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-neutral-border pb-3">
+              <div className="flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-lg font-bold text-primary-navy">Edit Fellow</h3>
+              </div>
+              <button onClick={() => setEditingFellow(null)} className="p-1 rounded-lg hover:bg-neutral-surface">
+                <X className="w-5 h-5 text-neutral-muted" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditFellow} className="space-y-4">
+              {/* Photo */}
+              <div>
+                <label className="block text-xs font-bold text-primary-navy mb-1">Photo</label>
+                <div className="flex items-center gap-2">
+                  {fellowEditForm.photoUrl && (
+                    <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-primary-navy shrink-0">
+                      <Image src={fellowEditForm.photoUrl} alt={fellowEditForm.name} fill className="object-cover" />
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    value={fellowEditForm.photoUrl}
+                    onChange={(e) => setFellowEditForm({ ...fellowEditForm, photoUrl: e.target.value })}
+                    placeholder="/uploads/fellows/photo.jpg"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-border"
+                  />
+                  <label className="p-2 rounded-lg bg-neutral-surface border border-neutral-border hover:bg-neutral-border cursor-pointer shrink-0">
+                    <Upload className="w-3.5 h-3.5 text-primary-navy" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFileUpload(e, (url) => setFellowEditForm((prev) => ({ ...prev, photoUrl: url })), 'fellows')}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-primary-navy mb-1">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={fellowEditForm.name}
+                    onChange={(e) => setFellowEditForm({ ...fellowEditForm, name: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-border focus:ring-2 focus:ring-indigo-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-primary-navy mb-1">Role / Focus Area</label>
+                  <input
+                    type="text"
+                    required
+                    value={fellowEditForm.fellowRole}
+                    onChange={(e) => setFellowEditForm({ ...fellowEditForm, fellowRole: e.target.value })}
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-border focus:ring-2 focus:ring-indigo-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-primary-navy mb-1">
+                  Bio <span className="text-[10px] text-neutral-muted font-light">(2–3 sentences)</span>
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={fellowEditForm.story}
+                  onChange={(e) => setFellowEditForm({ ...fellowEditForm, story: e.target.value })}
+                  className="w-full p-2.5 text-xs rounded-lg border border-neutral-border focus:ring-2 focus:ring-indigo-400"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-primary-navy mb-1">Display Order</label>
+                  <input
+                    type="number"
+                    value={fellowEditForm.displayOrder}
+                    onChange={(e) => setFellowEditForm({ ...fellowEditForm, displayOrder: parseInt(e.target.value, 10) || 0 })}
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-neutral-border"
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={fellowEditForm.published}
+                      onChange={(e) => setFellowEditForm({ ...fellowEditForm, published: e.target.checked })}
+                      className="rounded text-indigo-600 focus:ring-indigo-400"
+                    />
+                    <span className="text-xs font-bold text-primary-navy">Published (visible publicly)</span>
+                  </label>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                variant="gold"
+                size="lg"
+                isLoading={isSubmitting || uploadingFile}
+                className="w-full justify-center font-bold"
+              >
+                Save Fellow Changes
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
+
 
     </div>
   );
